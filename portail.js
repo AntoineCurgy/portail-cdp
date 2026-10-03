@@ -73,12 +73,26 @@ async function charger() {
     detail.className = "discret";
     detail.textContent = quand(r.produit_le) + " · " + taille(r.taille);
     texte.append(titre, detail);
-    const lien = document.createElement("a");
-    lien.className = "bouton";
-    lien.href = API + "/api/rapports/" + encodeURIComponent(r.id);
-    lien.textContent = "Télécharger";
-    lien.setAttribute("aria-label", "Télécharger " + titre.textContent);
-    li.append(texte, lien);
+    let action;
+    if (r.telechargeable) {
+      action = document.createElement("a");
+      action.href = API + "/api/rapports/" + encodeURIComponent(r.id);
+    } else {
+      // Decision d'Antoine du 2026-10-03 : un passage interrompu ne se telecharge pas,
+      // et l'utilisateur qui essaie recoit un message, pas une erreur.
+      action = document.createElement("button");
+      action.type = "button";
+      action.className = "bouton indisponible";
+      action.setAttribute("aria-disabled", "true");
+      action.addEventListener("click", () => dire(
+        "« " + titre.textContent + " » : le dernier passage n'a pas abouti, il n'y a rien à télécharger. " +
+        "Le rapport reviendra au prochain passage réussi.", true));
+      detail.textContent = quand(r.produit_le) + " · dernier passage interrompu";
+    }
+    action.classList.add("bouton");
+    action.textContent = "Télécharger";
+    action.setAttribute("aria-label", "Télécharger " + titre.textContent);
+    li.append(texte, action);
     liste.append(li);
   }
   dire(donnees.rapports.length ? "" : "Aucun rapport n'est disponible pour votre adresse.");
