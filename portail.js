@@ -107,9 +107,15 @@ $("etape-adresse").addEventListener("submit", async (e) => {
     return dire("Saisissez une adresse complète, par exemple prenom.nom@entreprise.fr.", true);
   }
   $("adresse").removeAttribute("aria-invalid");
-  const { statut } = await appeler("POST", "/api/connexion", { adresse });
+  const { statut, donnees } = await appeler("POST", "/api/connexion", { adresse });
   if (statut !== 200) return dire("Le service ne répond pas pour l'instant. Réessayez dans quelques minutes.", true);
-  dire("Si cette adresse a accès à des rapports, un code vient d'y être envoyé. Il est valable dix minutes.");
+  if (donnees && donnees.inconnue) {
+    // Decision d'Antoine du 2026-10-04 : une adresse sans compte ne recoit pas de code,
+    // et on lui dit a qui ecrire pour etre ajoutee.
+    return dire("Cette adresse n'a pas encore de compte. Écrivez à " + (donnees.contact || "votre administrateur") +
+                " pour que l'administrateur vous ajoute.", true);
+  }
+  dire("Un code vient d'être envoyé à " + adresse + ". Il est valable dix minutes.");
   montrer("etape-code");
 });
 
