@@ -668,7 +668,10 @@ function ligneRapport(r, avis) {
       b.addEventListener("click", () => ouvrirResume(r, b));
       resume.append(b);
     }
-    if (r.telechargeable) {
+    if (r.livrable === "interface") {
+      // Decision d'Antoine du 2026-10-04 : une interface depose dans un autre systeme ;
+      // on voit son etat et son resume, jamais de bouton de telechargement.
+    } else if (r.telechargeable) {
       const a = el("a", "btn", "Télécharger");
       a.href = urlRapport(r);
       a.setAttribute("aria-label", "Télécharger " + r.sujet);
