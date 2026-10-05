@@ -113,18 +113,17 @@
       <section class="carte" id="aide-connexion"><h2>Se connecter</h2><ol><li>Saisissez votre adresse professionnelle.</li><li>Vous recevez un code de six chiffres par courriel. Il vaut dix minutes et ne sert qu'une fois.</li><li>Saisissez-le : vous êtes connecté pour une semaine.</li></ol>
         <p class="discret">Après cinq codes faux, le code ne vaut plus : demandez-en un autre. Trois codes au plus par quart d'heure. Une adresse sans compte ne reçoit pas de code : écrivez à acurgy-ext@compagniedephalsbourg.com pour être ajouté.</p></section>
       <section class="carte" id="aide-rapports"><h2>Les rapports</h2><dl class="aide-dl">
-        <dt><span class="tag t-vert">validé</span></dt><dd>Le rapport est prêt, rien n'attend de vérification.</dd>
-        <dt><span class="tag t-ambre">à valider</span></dt><dd>Le rapport a trouvé des points à regarder : son résumé les liste.</dd>
+        <dt><span class="tag t-vert">fonctionnel</span></dt><dd>Le dernier passage a abouti. Ce qu'il a constaté, écarts compris, est dans son résumé.</dd>
         <dt><span class="tag t-rouge">interrompu</span></dt><dd>Le dernier passage n'a pas abouti. Le rapport ne se télécharge pas tant qu'un nouveau passage n'a pas réussi.</dd>
         <dt><span class="cad"><svg class="ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> Accès restreint</dt><dd>Le rapport existe, mais vous n'y avez pas accès. Votre administrateur peut vous l'ouvrir.</dd>
       </dl></section>
       <section class="carte" id="aide-etat"><h2>Comment lire l'état</h2>
         <h3>Une automatisation</h3><dl class="aide-dl">
-          <dt><span class="pt ok"></span> En service</dt><dd>Son dernier passage a abouti, il y a 4 jours au plus.</dd>
-          <dt><span class="pt panne"></span> En panne</dt><dd>Son dernier passage a échoué, ou elle n'a pas tourné depuis plus de 4 jours.</dd>
-          <dt><span class="pt pause"></span> Pas encore lancée</dt><dd>Elle n'a jamais tourné : il n'y a rien à mesurer.</dd></dl>
-        <h3>Les petits carrés</h3><p>Un carré par passage, du plus ancien au plus récent.</p><p class="legende"><span><span class="h ok"></span> abouti</span><span><span class="h voir"></span> abouti, points à voir</span><span><span class="h panne"></span> échec</span></p>
-        <h3>Le pourcentage</h3><p>La part des automatisations en service sur toutes les automatisations, lancées ou non.</p></section>
+          <dt><span class="pt ok"></span> Fonctionnelle</dt><dd>Son dernier passage a abouti, il y a 4 jours au plus.</dd>
+          <dt><span class="pt panne"></span> Interrompue</dt><dd>Son dernier passage a échoué, elle n'a pas tourné depuis plus de 4 jours, ou elle n'a jamais tourné.</dd>
+          <dt><span class="pt construction"></span> En construction</dt><dd>Elle est encore en cours de construction : elle peut produire, mais n'envoie aucun courriel.</dd></dl>
+        <h3>Les petits carrés</h3><p>Un carré par passage, du plus ancien au plus récent.</p><p class="legende"><span><span class="h ok"></span> abouti</span><span><span class="h panne"></span> échec</span></p>
+        <h3>Le pourcentage</h3><p>La part des automatisations fonctionnelles sur toutes les automatisations.</p></section>
       <section class="carte" id="aide-courriel"><h2>Recevoir par courriel</h2><p>Dans <a href="#parametres">Paramètres</a>, choisissez pour chaque automatisation si vous recevez ses rapports par courriel, et quels jours. Les rapports restent toujours sur le portail.</p></section>
       <section class="carte" id="aide-contact"><h2>Une question</h2><p>Écrivez à <a href="mailto:acurgy-ext@compagniedephalsbourg.com">acurgy-ext@compagniedephalsbourg.com</a>.</p></section>
     </div>

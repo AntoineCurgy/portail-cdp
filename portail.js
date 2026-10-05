@@ -16,9 +16,10 @@ const PAGES = ["accueil", "rapports", "automatisations", "parametres", "aide"];
 const ORDRE_DOMAINES = ["Contrôles de cohérence", "Flux entre systèmes", "Lettrages", "Grands livres", "Référentiels"];
 const JOURS = { lun: ["Lun.", "Lundi"], mar: ["Mar.", "Mardi"], mer: ["Mer.", "Mercredi"], jeu: ["Jeu.", "Jeudi"],
                 ven: ["Ven.", "Vendredi"], sam: ["Sam.", "Samedi"], dim: ["Dim.", "Dimanche"] };
-const ETATS = { ok: ["validé", "t-vert"], a_valider: ["à valider", "t-ambre"], interrompu: ["interrompu", "t-rouge"],
+// Trois etats (Antoine, 2026-10-05) ; « a_valider » est ramene a « ok » a la lecture (lireRapports).
+const ETATS = { ok: ["fonctionnel", "t-vert"], interrompu: ["interrompu", "t-rouge"],
                 illisible: ["illisible", "t-rouge"] };
-const STATUTS = { ok: "En service", panne: "En panne", pause: "Jamais lancée" };
+const STATUTS = { ok: "Fonctionnelle", panne: "Interrompue", construction: "En construction" };
 const PANNE_SERVICE = "Le service ne répond pas pour l'instant. Réessayez dans quelques minutes.";
 
 const ICONES = {
@@ -141,7 +142,9 @@ async function lire(chemin, verifier) {
 }
 
 const lireAutos = () => lire("/api/automatisations", (d) => Array.isArray(d.automatisations));
-const lireRapports = () => lire("/api/rapports", (d) => Array.isArray(d.rapports));
+// Un « a_valider » residuel (courriels d'avant le 2026-10-05) se lit « ok » : affiche, filtre et compte pareil.
+const lireRapports = () => lire("/api/rapports", (d) => Array.isArray(d.rapports))
+  .then((d) => { for (const r of d.rapports) if (r && r.etat === "a_valider") r.etat = "ok"; return d; });
 const lireParametres = () => lire("/api/parametres", (d) => Array.isArray(d.lignes));
 
 // ------------------------------------------------------------------ session
@@ -376,7 +379,7 @@ window.addEventListener("hashchange", router);
 // ------------------------------------------------------------------ calculs partages
 
 function compter(autos) {
-  const n = { ok: 0, panne: 0, pause: 0 };
+  const n = { ok: 0, panne: 0, construction: 0 };
   for (const a of autos) n[a.statut in n ? a.statut : "panne"] += 1;   // un statut inconnu compte comme panne, jamais omis
   return n;
 }
@@ -386,17 +389,17 @@ function statutDe(a) { return a.statut in STATUTS ? a.statut : "panne"; }
 function statutSysteme(autos) {
   if (autos.some((a) => statutDe(a) === "panne")) return "panne";
   if (autos.some((a) => statutDe(a) === "ok")) return "ok";
-  return "pause";
+  return "construction";
 }
 
-// « actives » : celles qui ont deja tourne (en service ou en panne), comme dans la maquette v14
+// « actives » : celles qui ne sont pas en construction, comme dans la maquette v14
 function actives(liste) {
-  const k = liste.filter((a) => statutDe(a) !== "pause").length;
+  const k = liste.filter((a) => statutDe(a) !== "construction").length;
   return k + " " + (k > 1 ? "actives" : "active") + " sur " + liste.length;
 }
 
 function phraseEtat(n) {
-  return `${n.ok} en service, ${n.panne} en panne, ${n.pause} pas encore lancée${n.pause > 1 ? "s" : ""}`;
+  return `${n.ok} fonctionnelle${n.ok > 1 ? "s" : ""}, ${n.panne} interrompue${n.panne > 1 ? "s" : ""}, ${n.construction} en construction`;
 }
 
 // Les cartes « Tous » puis une par systeme. `fabrique(valeur)` rend un lien ou un bouton.
@@ -444,7 +447,6 @@ async function vueAccueil() {
   const pct = total ? Math.round(n.ok / total * 100) : 0;
   const jour = jourDe(rapsD.maj || autosD.maj || (moi && moi.maj));
   const duJour = raps.filter((r) => r.jour === jour && r.etat !== "interrompu").length;
-  const aValider = raps.filter((r) => r.etat === "a_valider").length;
 
   // l'anneau et les grandeurs
   const ke = el("div", "ke");
@@ -455,14 +457,12 @@ async function vueAccueil() {
   centre.append(el("strong", null, n.ok), "/" + total);
   anneau.append(centre);
   const t = el("div", "ke-t");
-  t.append(el("p", "ke-titre", pct + " % des automatisations tournent"),
-    el("p", "ke-s", `${n.ok} en service sur ${total} · ${n.panne} en panne · ${n.pause} pas encore lancée${n.pause > 1 ? "s" : ""}`));
+  t.append(el("p", "ke-titre", pct + " % des automatisations fonctionnent"),
+    el("p", "ke-s", `${n.ok} fonctionnelle${n.ok > 1 ? "s" : ""} sur ${total} · ${n.panne} interrompue${n.panne > 1 ? "s" : ""} · ${n.construction} en construction`));
   const d = el("div", "ke-d");
   const l1 = el("p");
   l1.append(el("strong", null, duJour), ` ${duJour > 1 ? "rapports" : "rapport"} du jour sur ${raps.length}`);
-  const l2 = el("p");
-  l2.append(el("strong", "ambre", aValider), " à valider");
-  d.append(l1, l2);
+  d.append(l1);
   ke.append(anneau, t, d);
 
   // la grille des pastilles
@@ -472,9 +472,9 @@ async function vueAccueil() {
   const h2 = el("h2");
   h2.id = "titre-etat";
   h2.append(pastille(n.panne ? "panne" : "ok"),
-    n.panne ? pluriel(n.panne, "automatisation en panne", "automatisations en panne") : "Aucune automatisation en panne");
+    n.panne ? pluriel(n.panne, "automatisation interrompue", "automatisations interrompues") : "Aucune automatisation interrompue");
   const leg = el("p", "legende");
-  for (const [s, texte] of [["ok", "en service"], ["panne", "en panne"], ["pause", "jamais lancée"]]) {
+  for (const [s, texte] of [["ok", "fonctionnelle"], ["panne", "interrompue"], ["construction", "en construction"]]) {
     const x = el("span");
     x.append(pastille(s), texte);
     leg.append(x);
@@ -499,7 +499,7 @@ async function vueAccueil() {
   const pied = el("p", "c-pied");
   const aide = el("a", null, "Comment lire l'état");
   aide.href = "#aide/etat";
-  pied.append(el("span", null, `${n.ok} en service · ${n.panne} en panne · ${n.pause} jamais lancée${n.pause > 1 ? "s" : ""} · un numéro ouvre sa fiche`), aide);
+  pied.append(el("span", null, `${phraseEtat(n)} · un numéro ouvre sa fiche`), aide);
   etat.append(ch, grille, pied);
 
   const systemes = cartesSystemes(autosD, (s) => {
@@ -564,7 +564,7 @@ async function vueRapports() {
   const pe = el("div", "pe");
   pe.setAttribute("role", "group");
   pe.setAttribute("aria-label", "État");
-  for (const [v, texte] of [["", "Tous"], ["ok", "Validés"], ["a_valider", "À valider"], ["interrompu", "Interrompus"]]) {
+  for (const [v, texte] of [["", "Tous"], ["ok", "Fonctionnels"], ["interrompu", "Interrompus"]]) {
     const b = bouton("pe-b", texte);
     b.append(" ", el("span", null, v ? raps.filter((r) => r.etat === v).length : raps.length));
     b.dataset.v = v;
@@ -800,7 +800,7 @@ async function vueAutomatisations() {
   const barre = el("div", "gb-barre");
   barre.setAttribute("role", "group");
   barre.setAttribute("aria-label", "État");
-  for (const [v, texte, k] of [["", "Toutes", autos.length], ["ok", "En service", n.ok], ["panne", "En panne", n.panne], ["pause", "Pas encore lancées", n.pause]]) {
+  for (const [v, texte, k] of [["", "Toutes", autos.length], ["ok", "Fonctionnelles", n.ok], ["panne", "Interrompues", n.panne], ["construction", "En construction", n.construction]]) {
     const b = bouton("gb-o", texte);
     b.append(" ", el("span", null, k));
     b.dataset.v = v;
@@ -815,7 +815,7 @@ async function vueAutomatisations() {
     if (!parOrigine.has(k)) parOrigine.set(k, []);
     parOrigine.get(k).push(a);
   }
-  const lancees = (l) => l.filter((a) => statutDe(a) !== "pause").length;
+  const lancees = (l) => l.filter((a) => statutDe(a) !== "construction").length;
   const origines = [...parOrigine.keys()].sort((a, b) => {
     const la = parOrigine.get(a), lb = parOrigine.get(b);
     return (lancees(lb) - lancees(la)) || (lb.length - la.length) || a.localeCompare(b, "fr");
@@ -824,7 +824,7 @@ async function vueAutomatisations() {
   groupesAutos = [];
   const sections = [];
   for (const o of origines) {
-    const liste = parOrigine.get(o).sort((a, b) => ((statutDe(a) === "pause") - (statutDe(b) === "pause")) || parId(a, b));
+    const liste = parOrigine.get(o).sort((a, b) => ((statutDe(a) === "construction") - (statutDe(b) === "construction")) || parId(a, b));
     const sec = el("section", "carte grp-c");
     const h2 = el("h2", "grp", libelleGroupe(o));
     const cpt = el("span", "g-cpt", liste.length);
@@ -867,7 +867,7 @@ function appliquerFiltresAutos() { rafraichirFiltres(); }
 function carres(passages) {
   const h = el("span", "histo");
   for (const p of passages) {
-    const classe = p.resultat === "ok" ? "ok" : p.resultat === "à voir" ? "voir" : "panne";
+    const classe = p.resultat === "échec" ? "panne" : "ok";   // « à voir » a abouti : fonctionnel (2026-10-05)
     const c = el("span", "h " + classe);
     c.title = `${jourCourt(p.date)} · ${p.resultat}`;
     c.append(el("span", "sr", `${jourCourt(p.date)} : ${p.resultat}`));
@@ -889,7 +889,7 @@ function ligneAuto(a) {
   const passages = Array.isArray(a.passages) ? a.passages.slice(-8) : [];
   if (passages.length) histo.append(carres(passages)); else histo.append(el("span", "discret", "aucun passage au journal"));
   const d = el("span", "la-d mono");
-  if (a.dernier) d.textContent = `${jourCourt(a.dernier.date)} à ${heureCourte(a.dernier.heure)} · ${a.dernier.resultat}`;
+  if (a.dernier) d.textContent = `${jourCourt(a.dernier.date)} à ${heureCourte(a.dernier.heure)} · ${a.dernier.resultat === "échec" ? "échec" : "abouti"}`;
   else d.append(el("span", "discret", "jamais lancée"));
   const pt = pastille(st);
   pt.removeAttribute("aria-hidden");
@@ -932,7 +932,7 @@ function ouvrirFiche(id) {
   let dernier;
   if (a.dernier) {
     const p = el("p");
-    p.append(el("strong", null, `${jourCourt(a.dernier.date)} à ${heureCourte(a.dernier.heure)}`), " · " + a.dernier.resultat);
+    p.append(el("strong", null, `${jourCourt(a.dernier.date)} à ${heureCourte(a.dernier.heure)}`), " · " + (a.dernier.resultat === "échec" ? "échec" : "abouti"));
     dernier = [p];
     if (a.dernier.detail) dernier.push(el("p", "fi-box mono", a.dernier.detail));
   } else {
