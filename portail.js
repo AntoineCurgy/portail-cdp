@@ -132,12 +132,20 @@ async function appeler(methode, chemin, corps, format = "json") {
 }
 
 // Une lecture de page : 401 renvoie a la connexion, tout autre echec est dit.
+// Cache en memoire : changer d'onglet ne recharge pas ce qui a moins d'une minute (le serveur
+// relit la feuille au meme rythme). Vide apres un enregistrement et a la deconnexion.
+const CACHE = new Map();
+const DUREE_CACHE = 60 * 1000;
+
 async function lire(chemin, verifier) {
+  const c = CACHE.get(chemin);
+  if (c && Date.now() - c.t < DUREE_CACHE) return c.d;
   const { statut, donnees } = await appeler("GET", chemin);
   if (statut === 401) throw new SessionPerdue();
   if (statut !== 200 || !donnees || !verifier(donnees)) {
     throw new Error(statut === 503 ? "Une source du portail est momentanément indisponible. Réessayez dans quelques minutes." : PANNE_SERVICE);
   }
+  CACHE.set(chemin, { t: Date.now(), d: donnees });
   return donnees;
 }
 
@@ -298,6 +306,7 @@ function repartir(chiffres, depuis) {
 }
 
 $("deconnexion").addEventListener("click", async () => {
+  CACHE.clear();
   await appeler("POST", "/api/deconnexion", {});
   montrerConnexion("Vous êtes déconnecté.");
 });
@@ -1059,6 +1068,7 @@ async function vueParametres() {
     const echecs = [];
     for (const s of modifiees) {
       const corps = { id: s.l.id, courriel: s.inter.checked, jours: Object.keys(s.casesJ).filter((j) => s.casesJ[j].checked) };
+      CACHE.clear();
       const { statut, donnees: rep } = await appeler("POST", "/api/parametres", corps);
       if (statut === 401) { enCours = false; return sessionPerdue(); }
       if (statut === 200 && rep && rep.ok) {
