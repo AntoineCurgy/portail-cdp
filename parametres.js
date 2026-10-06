@@ -94,48 +94,47 @@ function vueParametres([donnees]) {
   const b = bouton("btn", "Enregistrer");
   const m = el("span", "enr-m");
   m.setAttribute("aria-live", "polite");
-  let enCours = false;
+  // Instantane (Antoine, 2026-10-06) : « Enregistré » s'affiche au clic, les choix restent
+  // tels quels, et l'ecriture part en fond en UN appel. Si elle echoue, la page le dit et
+  // les lignes non ecrites redeviennent « a enregistrer » : rien ne se perd en silence.
   b.addEventListener("click", async () => {
-    if (enCours) return;
     const modifiees = suivies.filter((s) => etatLigne(s) !== s.origine);
     if (!modifiees.length) { m.className = "enr-m"; m.textContent = "Aucune modification à enregistrer."; return; }
-    enCours = true;
-    b.setAttribute("aria-disabled", "true");
+    const avant = new Map(modifiees.map((s) => [s, s.origine]));
+    for (const s of modifiees) s.origine = etatLigne(s);
     m.className = "enr-m";
-    m.textContent = "Enregistrement…";
-    oublier(cleDe(SOURCES.parametres));   // la prochaine visite relit la feuille
+    m.textContent = `Enregistré : ${pluriel(modifiees.length, "ligne mise à jour", "lignes mises à jour")}.`;
+    const lignes = modifiees.map((s) => ({ id: s.l.id, courriel: s.inter.checked, jours: Object.keys(s.casesJ).filter((j) => s.casesJ[j].checked) }));
+    garderDansLeCache(lignes);
+    const { statut, donnees: rep } = await appeler("POST", "/api/parametres", { lignes });
+    if (statut === 401) return sessionPerdue();
+    const refusees = new Set(statut === 200 && rep && rep.ok && Array.isArray(rep.refus) ? rep.refus.map((r) => r.id) : modifiees.map((s) => s.l.id));
+    if (!refusees.size) return;
     const echecs = [];
     for (const s of modifiees) {
-      const corps = { id: s.l.id, courriel: s.inter.checked, jours: Object.keys(s.casesJ).filter((j) => s.casesJ[j].checked) };
-      const { statut, donnees: rep } = await appeler("POST", "/api/parametres", corps);
-      if (statut === 401) { enCours = false; return sessionPerdue(); }
-      if (statut === 200 && rep && rep.ok) {
-        if (rep.ligne && typeof rep.ligne === "object") {
-          s.inter.checked = !!rep.ligne.courriel;
-          for (const j of Object.keys(s.casesJ)) {
-            s.casesJ[j].checked = s.inter.checked && Array.isArray(rep.ligne.jours) && rep.ligne.jours.includes(j);
-            s.casesJ[j].disabled = !s.inter.checked;
-          }
-        }
-        s.origine = etatLigne(s);
-      } else {
-        echecs.push(`${s.l.nom} (${statut === 403 ? "accès refusé" : statut === 400 ? "demande refusée" : "service indisponible"})`);
-      }
+      if (!refusees.has(s.l.id)) continue;
+      s.origine = avant.get(s);   // de nouveau « a enregistrer »
+      echecs.push(s.l.nom);
     }
-    enCours = false;
-    b.removeAttribute("aria-disabled");
-    if (echecs.length) {
-      m.className = "enr-m erreur";
-      m.textContent = `Non enregistré pour : ${echecs.join(", ")}. Réessayez dans quelques minutes.`
-        + (echecs.length < modifiees.length ? ` Le reste est enregistré.` : "");
-    } else {
-      m.className = "enr-m";
-      m.textContent = `Enregistré : ${pluriel(modifiees.length, "ligne mise à jour", "lignes mises à jour")}.`;
-    }
+    oublier(cleDe(SOURCES.parametres));   // la prochaine visite relit la feuille, qui fait foi
+    m.className = "enr-m erreur";
+    m.textContent = `Non enregistré pour : ${echecs.join(", ")}. Vos choix sont conservés : cliquez de nouveau sur Enregistrer dans un instant.`;
   });
   enr.append(b, m);
   return [el("h1", null, "Paramètres"),
     el("p", "sous-titre", "Définissez ici les jours où vous souhaitez recevoir les rapports par courriel."), carte, enr];
+}
+
+// Le cache suit ce qui vient d'etre enregistre : revenir sur la page montre ses choix.
+function garderDansLeCache(lignes) {
+  const cle = cleDe(SOURCES.parametres);
+  const d = relire(cle);
+  if (!d || !Array.isArray(d.lignes)) return;
+  for (const x of lignes) {
+    const l = d.lignes.find((y) => y.id === x.id);
+    if (l) { l.courriel = x.courriel && x.jours.length > 0; l.jours = x.jours; }
+  }
+  stocker(cle, d);
 }
 
 demarrer(() => suivre([SOURCES.parametres], (d, premier) => {
