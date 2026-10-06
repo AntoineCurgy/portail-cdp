@@ -296,6 +296,7 @@ tbody th { font-weight: 500; }
 .aide-dl { display: grid; grid-template-columns: 11rem 1fr; gap: .55rem 1rem; margin: 0; align-items: baseline; }
 .aide-dl dt { display: flex; align-items: center; gap: .4rem; font-weight: 600; }
 .aide-dl dd { margin: 0; }
+.aide-c section { scroll-margin-top: calc(var(--hb) + 1rem); }
 
 /* ------------------------------------------------------------ connexion */
 .vue-connexion { flex: 1; display: flex; flex-direction: column; }
