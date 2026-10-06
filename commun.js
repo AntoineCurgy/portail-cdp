@@ -204,7 +204,7 @@ function horsLigne() {
 
 // ------------------------------------------------------------------ session et chrome
 
-const PAGES = ["index.html", "rapports.html", "automatisations.html", "parametres.html", "aide.html"];
+const PAGES = ["index.html", "rapports.html", "automatisations.html", "agents.html", "parametres.html", "aide.html"];
 
 function pageCourante() {
   const p = location.pathname.split("/").pop() || "index.html";

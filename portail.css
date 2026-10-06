@@ -298,6 +298,21 @@ tbody th { font-weight: 500; }
 .aide-dl dd { margin: 0; }
 .aide-c section { scroll-margin-top: calc(var(--hb) + 1rem); }
 
+/* ------------------------------------------------------------ agents (maquette v16, 2026-10-06) */
+.ag-k { display: flex; align-items: center; gap: .6rem; padding: .8rem 1.1rem; }
+.o-l { display: flex; flex-wrap: wrap; gap: .3rem; }
+.o-p { display: inline-flex; align-items: center; gap: .3rem; padding: .1rem .5rem; border: 1px solid var(--bord); border-radius: 999px; font-size: .72rem; white-space: nowrap; background-color: #fff; }
+.jauge { display: inline-flex; gap: 2px; vertical-align: middle; }
+.jauge span { width: 5px; height: 12px; border-radius: 1px; background-color: var(--surface2); }
+.jauge span.on { background-color: var(--marque); }
+.ag-la { grid-template-columns: 1rem 2rem minmax(0, 1fr) auto 12rem; }
+.ag-a { margin: 0; padding: 0; list-style: none; display: grid; gap: .5rem; }
+.ag-a li { display: flex; flex-direction: column; }
+.frise { list-style: none; margin: .4rem 0 0; padding: 0; display: flex; gap: .3rem; font-size: .72rem; color: var(--pale); }
+.frise li { flex: 1; border-top: 3px solid var(--surface2); padding-top: .3rem; }
+.frise li.fait { border-top-color: var(--marque); color: var(--marque); font-weight: 600; }
+
+
 /* ------------------------------------------------------------ connexion */
 .vue-connexion { flex: 1; display: flex; flex-direction: column; }
 .c1 { flex: 1; display: grid; place-items: center; padding: 2rem 1rem; }
@@ -332,7 +347,7 @@ tbody th { font-weight: 500; }
   .rail a, .rail button { width: auto; }
   .contenu { padding: 1.25rem 1rem 2rem; }
   .la { grid-template-columns: 1rem 2rem minmax(0, 1fr); }
-  .la-h, .la-d { display: none; }
+  .la-h, .la-d, .ag-la .o-l { display: none; }
   .aide { grid-template-columns: 1fr; }
   .aide-som { position: static; flex-direction: row; flex-wrap: wrap; }
   .ke-d { border-left: 0; padding-left: 0; }
