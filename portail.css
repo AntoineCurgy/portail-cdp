@@ -129,6 +129,8 @@ a { color: var(--marque); }
 
 .tag { display: inline-block; padding: .05rem .45rem; border-radius: 999px; font: 600 .7rem/1.5 var(--mono); vertical-align: middle; }
 .t-vert { background-color: #e3f1e8; color: var(--vert); }
+.gd .tag { white-space: nowrap; }   /* une etiquette tient sur une ligne (2026-10-08) */
+.gd-date { text-align: left; }
 .t-ambre { background-color: #fbf1df; color: var(--ambre); }
 .t-rouge { background-color: #f6e3e3; color: var(--rouge); }
 .t-ferme { background-color: var(--filet); color: var(--discret); }
@@ -204,7 +206,7 @@ table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: .55rem .5rem; border-bottom: 1px solid var(--filet); font-size: .85rem; vertical-align: middle; }
 thead th { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: var(--discret); font-weight: 500; padding-top: .8rem; }
 tbody th { font-weight: 500; }
-.gd { table-layout: fixed; min-width: 56rem; }
+.gd { table-layout: fixed; min-width: 66rem; }
 .gd th { overflow-wrap: anywhere; }
 .gd .c, .td-f { text-align: center; }
 .td-f { font-size: .8rem; color: var(--marque); }

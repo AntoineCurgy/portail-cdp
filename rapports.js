@@ -70,7 +70,7 @@ function vueRapports([donnees]) {
   const carte = el("div", "carte gd-c");
   const table = el("table", "gd");
   const cg = el("colgroup");
-  for (const w of ["", "12rem", "9rem", "8rem", "6.5rem", "7rem", "11rem"]) {
+  for (const w of ["", "11rem", "10rem", "9.5rem", "7.5rem", "7rem", "10rem"]) {
     const c = el("col");
     if (w) c.style.width = w;
     cg.append(c);
@@ -133,7 +133,7 @@ function ligneRapport(r, avis) {
   const f = el("td", "td-f", flux(r.flux));
   const origine = el("td", "discret", r.origine || "");
   const etat = el("td");
-  const date = el("td", "mono discret");
+  const date = el("td", "la-d mono gd-date");   // le style de la date des automatisations, sur une ligne
   const resume = el("td", "act");
   const action = el("td", "act");
   if (!r.acces) {
