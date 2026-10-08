@@ -161,9 +161,10 @@ function ligneRapport(r, avis) {
       b.addEventListener("click", () => ouvrirResume(r, b));
       resume.append(b);
     }
-    if (r.livrable === "interface") {
-      // Decision d'Antoine du 2026-10-04 : une interface depose dans un autre systeme ;
-      // on voit son etat et son resume, jamais de bouton de telechargement.
+    if (r.livrable === "interface" || r.construction) {
+      // Decisions d'Antoine : une interface depose dans un autre systeme (2026-10-04) ; un
+      // rapport d'une automatisation en construction ne se telecharge pas (2026-10-08).
+      // On voit leur etat et leur resume, jamais de bouton de telechargement.
     } else if (r.telechargeable) {
       const a = el("a", "btn", "Télécharger");
       a.href = urlRapport(r);
