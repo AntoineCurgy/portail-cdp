@@ -55,9 +55,9 @@ function vueRapports([donnees]) {
   const pe = el("div", "pe");
   pe.setAttribute("role", "group");
   pe.setAttribute("aria-label", "État");
-  for (const [v, texte] of [["", "Tous"], ["ok", "Fonctionnels"], ["interrompu", "Interrompus"]]) {
+  for (const [v, texte] of [["", "Tous"], ["ok", "Fonctionnels"], ["interrompu", "Interrompus"], ["construction", "En construction"]]) {
     const b = bouton("pe-b", texte);
-    b.append(" ", el("span", null, v ? raps.filter((r) => r.etat === v).length : raps.length));
+    b.append(" ", el("span", null, v ? raps.filter((r) => etatAffiche(r) === v).length : raps.length));
     b.dataset.v = v;
     b.addEventListener("click", () => { f.e = v; filtrer(); });
     pe.append(b);
@@ -70,7 +70,7 @@ function vueRapports([donnees]) {
   const carte = el("div", "carte gd-c");
   const table = el("table", "gd");
   const cg = el("colgroup");
-  for (const w of ["", "12rem", "9rem", "8rem", "3.5rem", "7rem", "11rem"]) {
+  for (const w of ["", "12rem", "9rem", "8rem", "6.5rem", "7rem", "11rem"]) {
     const c = el("col");
     if (w) c.style.width = w;
     cg.append(c);
@@ -112,7 +112,7 @@ function vueRapports([donnees]) {
     for (const b of pe.children) b.setAttribute("aria-pressed", String(b.dataset.v === f.e));
     let total = 0;
     for (const [l, r, g] of lignes) {
-      const ok = (!f.g || g === f.g) && (!f.e || r.etat === f.e) && (!f.q || String(r.sujet).toLowerCase().includes(f.q));
+      const ok = (!f.g || g === f.g) && (!f.e || etatAffiche(r) === f.e) && (!f.q || String(r.sujet).toLowerCase().includes(f.q));
       l.hidden = !ok;
       total += ok ? 1 : 0;
     }
@@ -149,9 +149,11 @@ function ligneRapport(r, avis) {
     action.append(b);
   } else {
     nom.textContent = String(r.sujet);
-    const t = tag(r.etat);
+    const t = tag(etatAffiche(r));
     if (t) etat.append(t);
-    date.textContent = jourCourt(r.jour);
+    // la date et l'heure du dernier passage, a Paris (demande des metiers, 2026-10-08)
+    const h = heureDe(r.produit_le);
+    date.textContent = jourCourt(r.jour) + (h ? " à " + h : "");
     if (r.resume) {
       const b = bouton("lien-r", "Voir le résumé");
       b.dataset.ouvrePanneau = "1";

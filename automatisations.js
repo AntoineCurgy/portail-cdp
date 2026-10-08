@@ -181,7 +181,9 @@ function ouvrirFiche(id) {
   if (!produits.length) raps.append(el("li", "discret", "aucun rapport sur le portail"));
   for (const r of produits) {
     const li = el("li");
-    const t = r.acces ? tag(r.etat === "a_valider" ? "ok" : r.etat) : el("span", "tag t-ferme", "accès restreint");
+    // le Statut fait autorite : une automatisation en construction montre ses rapports « en construction »
+    const etatR = st === "construction" ? "construction" : (r.etat === "a_valider" ? "ok" : r.etat);
+    const t = r.acces ? tag(etatR) : el("span", "tag t-ferme", "accès restreint");
     li.append(el("span", null, r.sujet));
     if (t) li.append(t);
     raps.append(li);

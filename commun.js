@@ -14,7 +14,7 @@ const API = (HOTE === "localhost" || HOTE === "127.0.0.1" || HOTE === "")
 const DELAI = 15000;
 const CONTACT = "acurgy-ext@compagniedephalsbourg.com";
 // Trois etats (Antoine, 2026-10-05) ; « a_valider » est ramene a « ok » a la lecture.
-const ETATS = { ok: ["fonctionnel", "t-vert"], interrompu: ["interrompu", "t-rouge"],
+const ETATS = { ok: ["fonctionnel", "t-vert"], interrompu: ["interrompu", "t-rouge"], construction: ["en construction", "t-ferme"],
                 illisible: ["illisible", "t-rouge"] };
 const STATUTS = { ok: "Fonctionnelle", panne: "Interrompue", construction: "En construction" };
 const PANNE_SERVICE = "Le service ne répond pas pour l'instant. Réessayez dans quelques minutes.";
@@ -55,6 +55,16 @@ function pastille(statut) {
   const p = el("span", "pt " + statut);
   p.setAttribute("aria-hidden", "true");
   return p;
+}
+
+// L'etat montre d'un rapport : « en construction » si son automatisation l'est (le Statut pose
+// par Antoine fait autorite, 2026-10-08), sinon l'etat mesure de son dernier passage.
+function etatAffiche(r) { return r.construction ? "construction" : r.etat; }
+
+// "2026-10-07T07:02:51+00:00" -> "09:02" (heure de Paris)
+function heureDe(iso) {
+  const p = parties(iso);
+  return p ? `${p.hour}:${p.minute}` : "";
 }
 
 function tag(etat) {
@@ -402,8 +412,9 @@ function carres(passages) {
   for (const p of passages) {
     const classe = p.resultat === "échec" ? "panne" : "ok";   // « à voir » a abouti : fonctionnel (2026-10-05)
     const c = el("span", "h " + classe);
-    c.title = `${jourCourt(p.date)} · ${p.resultat}`;
-    c.append(el("span", "sr", `${jourCourt(p.date)} : ${p.resultat}`));
+    const mot = classe === "panne" ? "échec" : "abouti";   // le mot montre, comme la couleur
+    c.title = `${jourCourt(p.date)} · ${mot}`;
+    c.append(el("span", "sr", `${jourCourt(p.date)} : ${mot}`));
     h.append(c);
   }
   return h;
