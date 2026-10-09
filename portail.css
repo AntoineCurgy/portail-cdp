@@ -237,6 +237,7 @@ tbody th { font-weight: 500; }
 .la-nom strong { font-weight: 400; font-size: .92rem; }
 .la-f { font-size: .78rem; color: var(--marque); }
 .la-d { font-size: .72rem; color: var(--discret); text-align: right; white-space: nowrap; }
+.la-d.alerte, .fi-s .alerte { color: var(--rouge); font-weight: 600; }   /* une surveillance qui signale un rate (2026-10-09) */
 
 /* ------------------------------------------------------------ panneau de droite */
 .tiroir {

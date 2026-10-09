@@ -415,7 +415,7 @@ function parId(a, b) { return String(a.id).localeCompare(String(b.id), "fr", { n
 function carres(passages) {
   const h = el("span", "histo");
   for (const p of passages) {
-    // rouge : « échec », et « alerte » (Antoine, 2026-10-09) ; vert : « ok », « écarts », « à voir »
+    // rouge : « échec », et « alerte », pour que le rate signale se voie (2026-10-09) ; vert : le reste
     const classe = p.resultat === "échec" || p.resultat === "alerte" ? "panne" : "ok";
     const c = el("span", "h " + classe);
     const mot = motPassage(p.resultat);

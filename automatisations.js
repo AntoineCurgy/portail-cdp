@@ -122,6 +122,7 @@ function ligneAuto(a) {
   if (passages.length) histo.append(carres(passages)); else histo.append(el("span", "discret", "aucun passage au journal"));
   const d = el("span", "la-d mono");
   if (a.dernier) d.textContent = `${jourCourt(a.dernier.date)} à ${heureCourte(a.dernier.heure)} · ${motPassage(a.dernier.resultat)}`;
+  if (a.dernier && a.dernier.resultat === "alerte") d.classList.add("alerte");   // le rate signale se voit (2026-10-09)
   else d.append(el("span", "discret", "jamais lancée"));
   const pt = pastille(st);
   pt.removeAttribute("aria-hidden");
@@ -166,6 +167,7 @@ function ouvrirFiche(id) {
   if (a.dernier) {
     const p = el("p");
     p.append(el("strong", null, `${jourCourt(a.dernier.date)} à ${heureCourte(a.dernier.heure)}`), " · " + motPassage(a.dernier.resultat));
+    if (a.dernier.resultat === "alerte") p.classList.add("alerte");
     dernier = [p];
     if (a.dernier.detail) dernier.push(el("p", "fi-box mono", a.dernier.detail));
   } else {
