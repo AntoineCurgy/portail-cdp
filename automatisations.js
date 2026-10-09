@@ -121,7 +121,7 @@ function ligneAuto(a) {
   const passages = Array.isArray(a.passages) ? a.passages.slice(-8) : [];
   if (passages.length) histo.append(carres(passages)); else histo.append(el("span", "discret", "aucun passage au journal"));
   const d = el("span", "la-d mono");
-  if (a.dernier) d.textContent = `${jourCourt(a.dernier.date)} à ${heureCourte(a.dernier.heure)} · ${a.dernier.resultat === "échec" ? "échec" : "abouti"}`;
+  if (a.dernier) d.textContent = `${jourCourt(a.dernier.date)} à ${heureCourte(a.dernier.heure)} · ${motPassage(a.dernier.resultat)}`;
   else d.append(el("span", "discret", "jamais lancée"));
   const pt = pastille(st);
   pt.removeAttribute("aria-hidden");
@@ -165,7 +165,7 @@ function ouvrirFiche(id) {
   let dernier;
   if (a.dernier) {
     const p = el("p");
-    p.append(el("strong", null, `${jourCourt(a.dernier.date)} à ${heureCourte(a.dernier.heure)}`), " · " + (a.dernier.resultat === "échec" ? "échec" : "abouti"));
+    p.append(el("strong", null, `${jourCourt(a.dernier.date)} à ${heureCourte(a.dernier.heure)}`), " · " + motPassage(a.dernier.resultat));
     dernier = [p];
     if (a.dernier.detail) dernier.push(el("p", "fi-box mono", a.dernier.detail));
   } else {

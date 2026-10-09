@@ -62,6 +62,11 @@ function pastille(statut) {
 function etatAffiche(r) { return r.construction ? "construction" : r.etat; }
 
 // "2026-10-07T07:02:51+00:00" -> "09:02" (heure de Paris)
+// Le mot d'un dernier passage : « échec », « écarts », « alerte », sinon « abouti » (« ok », « à voir »).
+function motPassage(resultat) {
+  return resultat === "échec" || resultat === "écarts" || resultat === "alerte" ? resultat : "abouti";
+}
+
 function heureDe(iso) {
   const p = parties(iso);
   return p ? `${p.hour}:${p.minute}` : "";
@@ -412,7 +417,8 @@ function carres(passages) {
   for (const p of passages) {
     const classe = p.resultat === "échec" ? "panne" : "ok";   // « à voir » a abouti : fonctionnel (2026-10-05)
     const c = el("span", "h " + classe);
-    const mot = classe === "panne" ? "échec" : "abouti";   // le mot montre, comme la couleur
+    // le mot montre : « écarts » et « alerte » sont des passages aboutis, dits tels quels (2026-10-09)
+    const mot = classe === "panne" ? "échec" : (p.resultat === "écarts" || p.resultat === "alerte" ? p.resultat : "abouti");
     c.title = `${jourCourt(p.date)} · ${mot}`;
     c.append(el("span", "sr", `${jourCourt(p.date)} : ${mot}`));
     h.append(c);
