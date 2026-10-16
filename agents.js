@@ -11,45 +11,47 @@ const ETAPES = ["Imaginé", "Outils FSI prêts", "Essai sur copie", "En service"
 const AGENTS = [
   ["AGT_CDP_01", "Agent lettrages", "Lettrages",
     "Propose, puis applique, les lettrages des factures fournisseurs entre Yooz et la comptabilité.",
-    ["AUT_CDP_07", "AUT_CDP_08", "AUT_CDP_09"],
-    [["Proposer les lettrages du jour", "AUT_CDP_07", 1], ["Appliquer un lettrage sûr à l'euro près", "AUT_CDP_09", 2]]],
+    ["AUT_0007", "AUT_0008", "AUT_0009"],
+    [["Proposer les lettrages du jour", "AUT_0007", 1], ["Appliquer un lettrage sûr à l'euro près", "AUT_0009", 2]]],
   ["AGT_CDP_02", "Agent encaissements", "Trésorerie",
     "Rapproche les encaissements bancaires des règlements locataires, et signale ce qui reste seul.",
-    ["AUT_CDP_19", "AUT_CDP_30", "AUT_CDP_23", "AUT_CDP_24"],
-    [["Pré-rapprocher les encaissements du relevé", "AUT_CDP_30", 1], ["Valider un rapprochement unique", "AUT_CDP_24", 2]]],
+    ["AUT_0019", "AUT_0030", "AUT_0023", "AUT_0024"],
+    [["Pré-rapprocher les encaissements du relevé", "AUT_0030", 1], ["Valider un rapprochement unique", "AUT_0024", 2]]],
   ["AGT_CDP_03", "Agent impayés", "Recouvrement",
     "Suit les impayés locataires et prépare les relances, que l'équipe envoie.",
-    ["AUT_CDP_33", "AUT_CDP_10"],
-    [["Lister les nouveaux impayés", "AUT_CDP_33", 0], ["Préparer le brouillon de relance", "AUT_CDP_33", 1]]],
+    ["AUT_0033", "AUT_0010"],
+    [["Lister les nouveaux impayés", "AUT_0033", 0], ["Préparer le brouillon de relance", "AUT_0033", 1]]],
   ["AGT_CDP_04", "Agent référentiels", "Référentiels",
     "Repère les tiers et codes auxiliaires incohérents entre systèmes, et propose la correction au référentiel.",
-    ["AUT_CDP_27", "AUT_CDP_34"],
-    [["Signaler un code auxiliaire en double", "AUT_CDP_34", 0], ["Proposer une correspondance au référentiel", "AUT_CDP_27", 1]]],
+    ["AUT_0027", "AUT_0034"],
+    [["Signaler un code auxiliaire en double", "AUT_0034", 0], ["Proposer une correspondance au référentiel", "AUT_0027", 1]]],
   ["AGT_CDP_05", "Agent clôture", "Contrôles de cohérence",
     "Prépare les contrôles de la clôture mensuelle et en rédige la synthèse.",
-    ["AUT_CDP_03", "AUT_CDP_04", "AUT_CDP_05", "AUT_CDP_06", "AUT_CDP_26"],
-    [["Rassembler les écarts de la clôture", "AUT_CDP_04", 0], ["Rédiger la synthèse pour la direction", "AUT_CDP_26", 1]]],
+    ["AUT_0003", "AUT_0004", "AUT_0005", "AUT_0006", "AUT_0026"],
+    [["Rassembler les écarts de la clôture", "AUT_0004", 0], ["Rédiger la synthèse pour la direction", "AUT_0026", 1]]],
   ["AGT_CDP_06", "Agent fournisseurs", "Fournisseurs",
     "Suit chaque facture fournisseur de Yooz jusqu'à son paiement dans Yardi, et signale celles qui restent bloquées.",
-    ["AUT_CDP_20", "AUT_CDP_21", "AUT_CDP_22"],
-    [["Signaler une facture bloquée", "AUT_CDP_20", 0], ["Créer dans Yardi un fournisseur manquant", "AUT_CDP_22", 2]]],
+    ["AUT_0020", "AUT_0021", "AUT_0022"],
+    [["Signaler une facture bloquée", "AUT_0020", 0], ["Créer dans Yardi un fournisseur manquant", "AUT_0022", 2]]],
   ["AGT_CDP_07", "Agent prélèvements", "Trésorerie",
     "Vérifie que chaque prélèvement émis revient payé sur le relevé bancaire, et traite les rejets.",
-    ["AUT_CDP_02", "AUT_CDP_13", "AUT_CDP_25"],
-    [["Signaler un rejet de prélèvement", "AUT_CDP_25", 0], ["Préparer la nouvelle présentation ou la relance", "AUT_CDP_02", 1]]],
+    ["AUT_0002", "AUT_0013", "AUT_0025"],
+    [["Signaler un rejet de prélèvement", "AUT_0025", 0], ["Préparer la nouvelle présentation ou la relance", "AUT_0002", 1]]],
   ["AGT_CDP_08", "Agent dépôts de garantie", "Recouvrement",
     "Suit chaque dépôt de garantie, de l'encaissement à la restitution, et prépare le décompte à la sortie d'un locataire.",
-    ["AUT_CDP_29", "AUT_CDP_10"],
-    [["Signaler un dépôt non comptabilisé", "AUT_CDP_29", 0], ["Calculer la somme à restituer, retenues déduites", "AUT_CDP_10", 1],
-     ["Passer l'écriture de restitution", "AUT_CDP_29", 2]]],
+    ["AUT_0029", "AUT_0010"],
+    [["Signaler un dépôt non comptabilisé", "AUT_0029", 0], ["Calculer la somme à restituer, retenues déduites", "AUT_0010", 1],
+     ["Passer l'écriture de restitution", "AUT_0029", 2]]],
   ["AGT_CDP_09", "Agent chiffre d'affaires", "Flux entre systèmes",
     "Vérifie que chaque quittance émise est bien passée en comptabilité, et fait repartir ce qui manque.",
-    ["AUT_CDP_01", "AUT_CDP_04"],
-    [["Lister les pièces absentes de Sage", "AUT_CDP_04", 0], ["Relancer l'export d'une pièce manquante", "AUT_CDP_01", 2]]],
+    ["AUT_0001", "AUT_0004"],
+    [["Lister les pièces absentes de Sage", "AUT_0004", 0], ["Relancer l'export d'une pièce manquante", "AUT_0001", 2]]],
 ].map(([id, nom, domaine, mission, outils, actions]) => ({ id, nom, domaine, mission, outils, actions, etape: 0 }));
 
 const filtres = { statut: "" };
 let autosParId = new Map();
+// Les agents que la feuille laisse affiches (« Affiché dans portail », Antoine, 2026-10-16).
+let agents = AGENTS;
 let lignesAgents = [];
 
 function params() { return new URLSearchParams(location.search); }
@@ -86,9 +88,11 @@ function puceOutil(id) {
 function vueAgents([autosD]) {
   majBandeau(autosD.maj);
   autosParId = new Map(autosD.automatisations.map((x) => [String(x.id), x]));
-  const nb = AGENTS.length;
-  const enService = AGENTS.filter((a) => statutAgent(a) === "ok").length;
-  const utilisees = new Set(AGENTS.flatMap((a) => a.outils)).size;
+  const masques = new Set(autosD.agents_masques || []);
+  agents = AGENTS.filter((a) => !masques.has(a.id));
+  const nb = agents.length;
+  const enService = agents.filter((a) => statutAgent(a) === "ok").length;
+  const utilisees = new Set(agents.flatMap((a) => a.outils)).size;
 
   const sous = el("p", "sous-titre", "Les agents qui s'appuieront sur les automatisations FSI. Tous sont en construction : aucun n'agit encore.");
   const k = el("div", "carte ag-k");
@@ -112,7 +116,7 @@ function vueAgents([autosD]) {
   h2.append(" ", cpt);
   sec.append(h2);
   lignesAgents = [];
-  for (const a of AGENTS) {
+  for (const a of agents) {
     const b = ligneAgent(a);
     lignesAgents.push([b, a]);
     sec.append(b);
@@ -173,7 +177,7 @@ function section(titre, ...enfants) {
 }
 
 function ouvrirFiche(id) {
-  const a = AGENTS.find((x) => x.id === id);
+  const a = agents.find((x) => x.id === id);
   if (!a) return fermerPanneau(false);
   const ligne = lignesAgents.find(([, x]) => x === a);
   const depuis = ligne ? ligne[0] : null;

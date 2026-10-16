@@ -1,5 +1,5 @@
 // La page des automatisations : la liste par systeme d'origine, la fiche dans le panneau.
-// L'adresse fait foi : `?sys=Even` filtre, `?id=AUT_CDP_19` ouvre la fiche. Ouvrir une
+// L'adresse fait foi : `?sys=Even` filtre, `?id=AUT_0019` ouvre la fiche. Ouvrir une
 // fiche ajoute une etape a l'historique (le bouton Retour la referme) ; filtrer, non.
 "use strict";
 
@@ -146,8 +146,10 @@ function section(titre, ...enfants) {
 
 function ouvrirFiche(id) {
   if (!donneesAutos) return;
-  const a = donneesAutos.automatisations.find((x) => String(x.id) === id);
+  // un lien enregistre avant la bascule du 2026-10-15 porte l'ancien identifiant : il mene au nouveau
+  const a = donneesAutos.automatisations.find((x) => String(x.id) === id || (x.anciens || []).includes(id));
   if (!a) return fermerPanneau(false);
+  if (String(a.id) !== id) history.replaceState(null, "", adresseAvec((q) => q.set("id", String(a.id))));
   const st = statutDe(a);
   const ligne = lignesAutos.find(([, x]) => x === a);
   const depuis = ligne ? ligne[0] : null;

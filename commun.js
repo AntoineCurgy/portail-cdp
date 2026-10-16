@@ -250,6 +250,8 @@ function poserMoi() {
   avatar.title = moi.nom ? moi.nom + " · " + adresse : adresse;
   avatar.setAttribute("aria-label", "Connecté : " + (moi.nom || adresse));
   if (!$("maj").textContent) majBandeau(moi.maj);
+  // l'onglet « Agents » disparait quand la feuille masque chaque agent (Antoine, 2026-10-16)
+  for (const l of document.querySelectorAll('a[data-page="agents"]')) l.hidden = moi.onglet_agents === false;
 }
 
 // L'adresse connectee, du cache si on l'a (la page s'affiche tout de suite), revalidee en
@@ -428,7 +430,7 @@ function carres(passages) {
 
 // ------------------------------------------------------------------ les anciennes adresses
 // Jusqu'au 2026-10-06, le portail tenait en une page a ancres (#rapports,
-// #automatisations/AUT_CDP_19?sys=Even, #aide/etat). Un favori ancien mene a la bonne page.
+// #automatisations/AUT_0019?sys=Even, #aide/etat). Un favori ancien mene a la bonne page.
 (function anciennesAncres() {
   if (pageCourante() !== "index.html" || !/^#(accueil|rapports|automatisations|parametres|aide)\b/.test(location.hash)) return;
   let h = location.hash.slice(1);
