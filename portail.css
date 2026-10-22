@@ -50,7 +50,7 @@ a { color: var(--marque); }
 .evitement { position: absolute; left: 1rem; top: -4rem; z-index: 50; padding: .5rem 1rem; border-radius: 8px; background-color: #fff; color: var(--marque); font-weight: 600; }
 .evitement:focus { top: 1rem; }
 
-/* ------------------------------------------------------------ logo CDP */
+/* ------------------------------------------------------------ logo du client */
 /* L'image (300 x 220, fond blanc) vient de logo-cdp.css ; on n'en montre que
    la zone utile (x 50-250, y 40-200), a l'echelle --k. */
 .logo-cdp {

@@ -49,7 +49,7 @@ function vueAccueil([autosD, rapsD]) {
     const li = el("li");
     const lien = el("a", "case " + st);
     lien.href = "automatisations.html?" + new URLSearchParams({ id: String(a.id) });
-    const quand = a.dernier ? ` · ${jourCourt(a.dernier.date)} à ${heureCourte(a.dernier.heure)}` : "";
+    const quand = a.fige ? ` · ${FIGE}` : a.dernier ? ` · ${jourCourt(a.dernier.date)} à ${heureCourte(a.dernier.heure)}` : "";
     lien.title = `${flux(a.flux)} · ${a.nom} · ${STATUTS[st]}${quand}`;
     const pt = el("span", "pt");
     pt.setAttribute("aria-hidden", "true");

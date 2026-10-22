@@ -121,9 +121,11 @@ function ligneAuto(a) {
   const passages = Array.isArray(a.passages) ? a.passages.slice(-8) : [];
   if (passages.length) histo.append(carres(passages)); else histo.append(el("span", "discret", "aucun passage au journal"));
   const d = el("span", "la-d mono");
-  if (a.dernier) d.textContent = `${jourCourt(a.dernier.date)} à ${heureCourte(a.dernier.heure)} · ${motPassage(a.dernier.resultat)}`;
-  if (a.dernier && a.dernier.resultat === "alerte") d.classList.add("alerte");   // le rate signale se voit (2026-10-09)
-  else d.append(el("span", "discret", "jamais lancée"));
+  if (a.fige) d.textContent = FIGE;
+  else if (a.dernier) {
+    d.textContent = `${jourCourt(a.dernier.date)} à ${heureCourte(a.dernier.heure)} · ${motPassage(a.dernier.resultat)}`;
+    if (a.dernier.resultat === "alerte") d.classList.add("alerte");   // le rate signale se voit (2026-10-09)
+  } else d.append(el("span", "discret", "jamais lancée"));
   const pt = pastille(st);
   pt.removeAttribute("aria-hidden");
   pt.setAttribute("role", "img");
@@ -166,7 +168,9 @@ function ouvrirFiche(id) {
   const quand = el("p", null, [a.jours, a.heure].filter(Boolean).join(" à ") || "Non renseigné.");
 
   let dernier;
-  if (a.dernier) {
+  if (a.fige) {
+    dernier = [el("p", null, FIGE)];
+  } else if (a.dernier) {
     const p = el("p");
     p.append(el("strong", null, `${jourCourt(a.dernier.date)} à ${heureCourte(a.dernier.heure)}`), " · " + motPassage(a.dernier.resultat));
     if (a.dernier.resultat === "alerte") p.classList.add("alerte");

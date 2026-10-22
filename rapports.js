@@ -153,7 +153,7 @@ function ligneRapport(r, avis) {
     if (t) etat.append(t);
     // la date et l'heure du dernier passage, a Paris (demande des metiers, 2026-10-08)
     const h = heureDe(r.produit_le);
-    date.textContent = jourCourt(r.jour) + (h ? " à " + h : "");
+    date.textContent = r.fige ? FIGE : jourCourt(r.jour) + (h ? " à " + h : "");
     if (r.resume) {
       const b = bouton("lien-r", "Voir le résumé");
       b.dataset.ouvrePanneau = "1";

@@ -17,6 +17,8 @@ const CONTACT = "acurgy-ext@compagniedephalsbourg.com";
 const ETATS = { ok: ["fonctionnel", "t-vert"], interrompu: ["interrompu", "t-rouge"], construction: ["en construction", "t-ferme"],
                 illisible: ["illisible", "t-rouge"] };
 const STATUTS = { ok: "Fonctionnelle", panne: "Interrompue", construction: "En construction" };
+// Une automatisation « Figée » ne tourne plus : ce texte remplace sa date (Antoine, 2026-10-22).
+const FIGE = "Historique figé";
 const PANNE_SERVICE = "Le service ne répond pas pour l'instant. Réessayez dans quelques minutes.";
 
 const ICONES = {
