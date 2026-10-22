@@ -3,7 +3,7 @@
 // fiche ajoute une etape a l'historique (le bouton Retour la referme) ; filtrer, non.
 "use strict";
 
-const filtres = { statut: "" };   // l'etat ; le systeme vit dans l'adresse
+const filtres = { statut: "", q: "" };   // l'etat et la recherche ; le systeme vit dans l'adresse
 let donneesAutos = null;
 let lignesAutos = [];
 let groupesAutos = [];
@@ -41,6 +41,16 @@ function vueAutomatisations([donnees]) {
     });
     return b;
   });
+
+  // la recherche, comme dans l'onglet Rapports (Antoine, 2026-10-22)
+  const lab = el("label", "cherche");
+  lab.append(el("span", "sr", "Rechercher une automatisation"));
+  const champ = el("input");
+  champ.type = "search";
+  champ.placeholder = "Rechercher une automatisation…";
+  champ.value = f.q;
+  champ.addEventListener("input", () => { f.q = champ.value.trim().toLowerCase(); rafraichirFiltres(); });
+  lab.append(champ);
 
   const barre = el("div", "gb-barre");
   barre.setAttribute("role", "group");
@@ -92,7 +102,8 @@ function vueAutomatisations([donnees]) {
     for (const c of cartes.querySelectorAll("[data-sys]")) c.setAttribute("aria-pressed", String(c.dataset.sys === sys));
     let total = 0;
     for (const [b, a] of lignesAutos) {
-      const ok = (!f.statut || statutDe(a) === f.statut) && (!sys || (Array.isArray(a.systemes) && a.systemes.includes(sys)));
+      const ok = (!f.statut || statutDe(a) === f.statut) && (!sys || (Array.isArray(a.systemes) && a.systemes.includes(sys)))
+        && (!f.q || [a.id, a.court, a.nom, a.flux, a.objectif, ...(a.anciens || [])].join(" ").toLowerCase().includes(f.q));
       b.hidden = !ok;
       total += ok ? 1 : 0;
     }
@@ -105,18 +116,24 @@ function vueAutomatisations([donnees]) {
     vide.hidden = total > 0;
   };
   rafraichirFiltres();
-  return [el("h1", null, "Automatisations"), sous, cartes, barre, ...sections, vide];
+  const outils = el("div", "outils ligne");
+  outils.append(lab, barre);
+  return [el("h1", null, "Automatisations"), sous, cartes, outils, ...sections, vide];
 }
 
 function ligneAuto(a) {
   const st = statutDe(a);
-  const b = bouton("tiroir-l lb");
+  // La ligne est un bloc : le bouton du nom ouvre la fiche et couvre toute la ligne ; le bouton
+  // Documentation se pose a gauche des carres, au-dessus (Antoine, 2026-10-22).
+  const b = el("div", "tiroir-l lb");
   b.dataset.auto = String(a.id);
   b.dataset.ouvrePanneau = "1";
-  b.setAttribute("aria-expanded", "false");
+  const ouvrir = bouton("lb-o");
+  ouvrir.setAttribute("aria-expanded", "false");
+  ouvrir.append(el("strong", null, a.nom));
   const la = el("span", "la");
   const nom = el("span", "la-nom");
-  nom.append(el("strong", null, a.nom), el("span", "la-f", flux(a.flux)));
+  nom.append(ouvrir, el("span", "la-f", flux(a.flux)));
   const histo = el("span", "la-h");
   const passages = Array.isArray(a.passages) ? a.passages.slice(-8) : [];
   if (passages.length) histo.append(carres(passages)); else histo.append(el("span", "discret", "aucun passage au journal"));
@@ -130,9 +147,9 @@ function ligneAuto(a) {
   pt.removeAttribute("aria-hidden");
   pt.setAttribute("role", "img");
   pt.setAttribute("aria-label", STATUTS[st]);
-  la.append(pt, el("span", "la-id mono", a.court || String(a.id).slice(-2)), nom, histo, d);
+  la.append(pt, el("span", "la-id mono", a.court || String(a.id).slice(-2)), nom, boutonDocumentation(a), histo, d);
   b.append(la, ico("chevron", 16));
-  b.addEventListener("click", () => {
+  ouvrir.addEventListener("click", () => {
     const id = String(a.id);
     if (params().get("id") !== id) history.pushState(null, "", adresseAvec((q) => q.set("id", id)));
     ouvrirFiche(id);
@@ -253,8 +270,12 @@ function ouvrirFiche(id) {
   if (String(a.id) !== id) history.replaceState(null, "", adresseAvec((q) => q.set("id", String(a.id))));
   const st = statutDe(a);
   const ligne = lignesAutos.find(([, x]) => x === a);
-  const depuis = ligne ? ligne[0] : null;
-  for (const b of document.querySelectorAll(".lb[aria-expanded]")) b.setAttribute("aria-expanded", String(b === depuis));
+  const rangee = ligne ? ligne[0] : null;
+  const depuis = rangee ? rangee.querySelector(".lb-o") : null;
+  for (const [r] of lignesAutos) {
+    r.classList.toggle("ouverte", r === rangee);
+    r.querySelector(".lb-o").setAttribute("aria-expanded", String(r === rangee));
+  }
 
   const etiquette = el("p", "fi-st " + st);
   etiquette.append(pastille(st), STATUTS[st]);
@@ -262,8 +283,6 @@ function ouvrirFiche(id) {
   nom.id = "panneau-titre";
   const fl = el("p", "fi-flux", flux(a.flux));
   fl.append(" ", el("span", "mono", a.id));
-
-  const doc = boutonDocumentation(a);
 
   const objectif = a.objectif ? el("p", null, a.objectif) : el("p", "discret", "Objectif à écrire dans la feuille des réglages.");
   const quand = el("p", null, [a.jours, a.heure].filter(Boolean).join(" à ") || "Non renseigné.");
@@ -298,19 +317,22 @@ function ouvrirFiche(id) {
     raps.append(li);
   }
 
-  ouvrirPanneau("fiche", [etiquette, nom, fl, doc,
+  ouvrirPanneau("fiche", [etiquette, nom, fl,
     section("Ce qu'elle fait", objectif),
     section("Quand elle tourne", quand),
     section("Dernier passage", ...dernier),
     section("Huit derniers passages", huit),
     section("Rapports produits", raps)], depuis);
-  if (depuis) depuis.scrollIntoView({ block: "nearest" });
+  if (rangee) rangee.scrollIntoView({ block: "nearest" });
 }
 
 // Fermer la fiche retire `?id` de l'adresse, sans ajouter d'etape a l'historique.
 auFermer = (mode) => {
   if (mode !== "fiche") return;
-  for (const b of document.querySelectorAll(".lb[aria-expanded]")) b.setAttribute("aria-expanded", "false");
+  for (const [r] of lignesAutos) {
+    r.classList.remove("ouverte");
+    r.querySelector(".lb-o").setAttribute("aria-expanded", "false");
+  }
   if (params().has("id")) history.replaceState(null, "", adresseAvec((q) => q.delete("id")));
 };
 
