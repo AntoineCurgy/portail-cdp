@@ -70,14 +70,14 @@ function vueRapports([donnees]) {
   const carte = el("div", "carte gd-c");
   const table = el("table", "gd");
   const cg = el("colgroup");
-  for (const w of ["", "11rem", "10rem", "9.5rem", "7.5rem", "6.5rem", "7rem", "10rem"]) {
+  for (const w of ["", "9rem", "9.5rem", "8.5rem", "8.5rem", "6.75rem", "9.75rem", "9.75rem"]) {
     const c = el("col");
     if (w) c.style.width = w;
     cg.append(c);
   }
   const thead = el("thead");
   const tr = el("tr");
-  for (const [texte, classe, cache] of [["Rapport"], ["Systèmes", "c"], ["Système d'origine"], ["État"], ["Date"], ["Notice", null, true], ["Résumé", null, true], ["Télécharger", null, true]]) {
+  for (const [texte, classe, cache] of [["Rapport"], ["Systèmes", "c"], ["Système d'origine"], ["État"], ["Date"], ["Résumé", null, true], ["Notice", null, true], ["Télécharger", null, true]]) {
     const th = el("th", classe);
     th.scope = "col";
     if (cache) th.append(el("span", "sr", texte)); else th.textContent = texte;
@@ -135,7 +135,7 @@ function ligneRapport(r, avis) {
   const etat = el("td");
   const date = el("td", "la-d mono gd-date");   // le style de la date des automatisations, sur une ligne
   const notice = el("td", "act");
-  const resume = el("td", "act");
+  const resume = el("td", "gd-resume");   // a gauche, comme l'etat et la date : trois departs a pas egal (2026-10-23)
   const action = el("td", "act");
   if (!r.acces) {
     tr.className = "restreint";
@@ -162,18 +162,21 @@ function ligneRapport(r, avis) {
       b.addEventListener("click", () => ouvrirResume(r, b));
       resume.append(b);
     }
-    // La notice utilisateur du rapport, dans sa colonne (Antoine, 2026-10-23 : « rajouter une colonne avec
-    // bouton notice dans l'onglet rapports ») : une page a part, dans un nouvel onglet ; grisee tant
-    // qu'elle n'est pas publiee.
+    // La notice utilisateur du rapport, dans sa colonne a gauche de Telecharger (Antoine, 2026-10-23 :
+    // « a cote de telechargement [...] bouton exactement pareil [...] meme largeur », un detail subtil
+    // qui les differencie : le bleu nuit et un livre, une fleche sur Telecharger) ; une page a part, dans un nouvel onglet ; grisee tant qu'elle
+    // n'est pas publiee.
     if (r.notice === "publiee") {
-      const n = el("a", "btn doc-b", "Notice");
+      const n = el("a", "btn b-l b-notice");
+      n.append(ico("livre", 15), "Notice");
       n.href = API + "/api/automatisations/" + encodeURIComponent(r.automatisation) + "/notice";
       n.target = "_blank";
       n.rel = "noopener";
       n.setAttribute("aria-label", "Ouvrir la notice de " + r.sujet + " (nouvel onglet)");
       notice.append(n);
     } else if (r.notice === "absente") {
-      const n = bouton("btn doc-b eteint", "Notice");
+      const n = bouton("btn b-l b-notice eteint");
+      n.append(ico("livre", 15), "Notice");
       n.setAttribute("aria-disabled", "true");
       n.setAttribute("aria-label", "Notice de " + r.sujet + " (pas encore publiée)");
       n.addEventListener("click", () => { avis.textContent = `La notice de « ${r.sujet} » n'est pas encore publiée.`; });
@@ -184,14 +187,16 @@ function ligneRapport(r, avis) {
       // rapport d'une automatisation en construction ne se telecharge pas (2026-10-08).
       // On voit leur etat et leur resume, jamais de bouton de telechargement.
     } else if (r.telechargeable) {
-      const a = el("a", "btn", "Télécharger");
+      const a = el("a", "btn b-l");
+      a.append(ico("telecharger", 15), "Télécharger");
       a.href = urlRapport(r);
       a.setAttribute("aria-label", "Télécharger " + r.sujet);
       action.append(a);
     } else {
       // Decision d'Antoine du 2026-10-03 : un passage interrompu ne se telecharge pas,
       // et l'utilisateur qui essaie recoit une explication, pas une erreur.
-      const b = bouton("btn eteint", "Télécharger");
+      const b = bouton("btn b-l eteint");
+      b.append(ico("telecharger", 15), "Télécharger");
       b.setAttribute("aria-disabled", "true");
       b.setAttribute("aria-label", "Télécharger " + r.sujet + " (indisponible)");
       b.addEventListener("click", () => {
@@ -200,7 +205,7 @@ function ligneRapport(r, avis) {
       action.append(b);
     }
   }
-  tr.append(nom, f, origine, etat, date, notice, resume, action);
+  tr.append(nom, f, origine, etat, date, resume, notice, action);
   return tr;
 }
 

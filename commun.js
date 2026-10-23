@@ -24,6 +24,9 @@ const PANNE_SERVICE = "Le service ne répond pas pour l'instant. Réessayez dans
 const ICONES = {
   cadenas: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
   chevron: '<polyline points="9 18 15 12 9 6"/>',
+  // le livre ouvert de la notice, la fleche du telechargement (Antoine, 2026-10-23)
+  livre: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  telecharger: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
 };
 
 const $ = (id) => document.getElementById(id);

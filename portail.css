@@ -143,8 +143,11 @@ a { color: var(--marque); }
 .btn.eteint { background-color: var(--surface2); color: var(--pale); cursor: not-allowed; }
 .cad { display: inline-flex; vertical-align: -2px; margin-right: .35rem; color: var(--pale); }
 .lien-r { font: inherit; font-size: .8rem; background-color: transparent; border: 0; padding: 0; color: var(--discret); text-decoration: underline; cursor: pointer; white-space: nowrap; }
-/* la notice, dans sa colonne de l'onglet Rapports : le bouton des documentations, en plus petit (2026-10-23) */
-.gd .doc-b { margin: 0; padding: .3rem .65rem; font-size: .78rem; }
+/* Telecharger et Notice, cote a cote, la meme largeur ; la notice en bleu nuit avec un livre, le
+   telechargement avec sa fleche (Antoine, 2026-10-23 : la variante 1 et « le petit symbole à coté de télécharger ») */
+.btn.b-l { width: 8.75rem; }
+.btn.b-notice { background-color: var(--nuit); }
+.btn.b-notice.eteint { background-color: var(--surface2); }
 
 .histo { display: inline-flex; gap: 3px; vertical-align: middle; }
 .h { display: inline-block; width: .8rem; height: .8rem; border-radius: 3px; }
@@ -208,7 +211,7 @@ table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: .55rem .5rem; border-bottom: 1px solid var(--filet); font-size: .85rem; vertical-align: middle; }
 thead th { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: var(--discret); font-weight: 500; padding-top: .8rem; }
 tbody th { font-weight: 500; }
-.gd { table-layout: fixed; min-width: 72.5rem; }
+.gd { table-layout: fixed; min-width: 74rem; }
 .gd th { overflow-wrap: anywhere; }
 .gd .c, .td-f { text-align: center; }
 .td-f { font-size: .8rem; color: var(--marque); }
@@ -216,6 +219,8 @@ tbody th { font-weight: 500; }
 .gd-b span { font-weight: 400; color: var(--discret); margin-left: .5rem; }
 .gd tbody + tbody .gd-b th { border-top: .6rem solid #fff; }
 .act { text-align: right; white-space: nowrap; }
+.gd-resume { white-space: nowrap; }
+.gd .gd-date { text-align: left; }   /* .la-d l'aligne a droite dans les automatisations ; ici, a gauche comme l'etat */
 .restreint td { color: var(--pale); }
 .restreint .cad { color: var(--rouge); }
 .restreint .td-f { color: var(--pale); }
