@@ -70,14 +70,14 @@ function vueRapports([donnees]) {
   const carte = el("div", "carte gd-c");
   const table = el("table", "gd");
   const cg = el("colgroup");
-  for (const w of ["", "11rem", "10rem", "9.5rem", "7.5rem", "7rem", "10rem"]) {
+  for (const w of ["", "11rem", "10rem", "9.5rem", "7.5rem", "6.5rem", "7rem", "10rem"]) {
     const c = el("col");
     if (w) c.style.width = w;
     cg.append(c);
   }
   const thead = el("thead");
   const tr = el("tr");
-  for (const [texte, classe, cache] of [["Rapport"], ["Systèmes", "c"], ["Système d'origine"], ["État"], ["Date"], ["Résumé", null, true], ["Télécharger", null, true]]) {
+  for (const [texte, classe, cache] of [["Rapport"], ["Systèmes", "c"], ["Système d'origine"], ["État"], ["Date"], ["Notice", null, true], ["Résumé", null, true], ["Télécharger", null, true]]) {
     const th = el("th", classe);
     th.scope = "col";
     if (cache) th.append(el("span", "sr", texte)); else th.textContent = texte;
@@ -91,7 +91,7 @@ function vueRapports([donnees]) {
     const tb = el("tbody");
     const bande = el("tr", "gd-b");
     const th = el("th", null, g);
-    th.colSpan = 7;
+    th.colSpan = 8;
     th.scope = "rowgroup";
     th.append(" ", el("span", null, pluriel(liste.length, "rapport", "rapports")));
     bande.append(th);
@@ -134,6 +134,7 @@ function ligneRapport(r, avis) {
   const origine = el("td", "discret", r.origine || "");
   const etat = el("td");
   const date = el("td", "la-d mono gd-date");   // le style de la date des automatisations, sur une ligne
+  const notice = el("td", "act");
   const resume = el("td", "act");
   const action = el("td", "act");
   if (!r.acces) {
@@ -161,6 +162,23 @@ function ligneRapport(r, avis) {
       b.addEventListener("click", () => ouvrirResume(r, b));
       resume.append(b);
     }
+    // La notice utilisateur du rapport, dans sa colonne (Antoine, 2026-10-23 : « rajouter une colonne avec
+    // bouton notice dans l'onglet rapports ») : une page a part, dans un nouvel onglet ; grisee tant
+    // qu'elle n'est pas publiee.
+    if (r.notice === "publiee") {
+      const n = el("a", "btn doc-b", "Notice");
+      n.href = API + "/api/automatisations/" + encodeURIComponent(r.automatisation) + "/notice";
+      n.target = "_blank";
+      n.rel = "noopener";
+      n.setAttribute("aria-label", "Ouvrir la notice de " + r.sujet + " (nouvel onglet)");
+      notice.append(n);
+    } else if (r.notice === "absente") {
+      const n = bouton("btn doc-b eteint", "Notice");
+      n.setAttribute("aria-disabled", "true");
+      n.setAttribute("aria-label", "Notice de " + r.sujet + " (pas encore publiée)");
+      n.addEventListener("click", () => { avis.textContent = `La notice de « ${r.sujet} » n'est pas encore publiée.`; });
+      notice.append(n);
+    }
     if (r.livrable === "interface" || r.construction) {
       // Decisions d'Antoine : une interface depose dans un autre systeme (2026-10-04) ; un
       // rapport d'une automatisation en construction ne se telecharge pas (2026-10-08).
@@ -182,7 +200,7 @@ function ligneRapport(r, avis) {
       action.append(b);
     }
   }
-  tr.append(nom, f, origine, etat, date, resume, action);
+  tr.append(nom, f, origine, etat, date, notice, resume, action);
   return tr;
 }
 
