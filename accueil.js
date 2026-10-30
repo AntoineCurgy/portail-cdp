@@ -4,7 +4,7 @@
 function vueAccueil([autosD, rapsD]) {
   majBandeau(rapsD.maj || autosD.maj);
   const autos = autosD.automatisations;
-  const raps = rapsD.rapports;
+  const raps = rapsD.rapports.filter(rapportMontre);   // les memes lignes que l'onglet Rapports (2026-10-30)
   const n = compter(autos);
   const total = autos.length;
   const pct = total ? Math.round(n.ok / total * 100) : 0;

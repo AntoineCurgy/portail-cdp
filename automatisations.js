@@ -181,7 +181,7 @@ function ligneVersion(nom, v) {
 function boutonDocumentation(a) {
   const d = a.documentation || {};
   const pieces = d.pieces || {};
-  const dispo = PIECES_DOC.some(([k]) => pieces[k]);
+  const dispo = PIECES_DOC.some(([k]) => pieces[k]) || a.notice === "publiee";
   const b = bouton("btn doc-b" + (dispo ? "" : " eteint"));
   const pt = el("span", "pt");
   pt.style.backgroundColor = dispo ? (COULEUR_DOC[d.etat] || "var(--pale)") : "var(--pale)";
@@ -235,6 +235,25 @@ function ouvrirDocumentation(a, depuis) {
       li.append(lien);
     } else {
       li.append(el("span", "absent", "pas encore disponible"));
+    }
+    liste.append(li);
+  }
+  // La notice, quatrieme document (Antoine, 2026-10-30) : une page, dans un nouvel onglet, comme
+  // dans l'onglet Rapports ; elle ne s'ouvre qu'a qui a le droit sur l'automatisation.
+  if (a.notice) {
+    const li = el("li");
+    const n = el("span", null, "Notice");
+    n.append(el("span", "f", " · page"));
+    li.append(n);
+    if (a.notice === "publiee") {
+      const lien = el("a", "btn", "Ouvrir");
+      lien.href = API + "/api/automatisations/" + encodeURIComponent(a.id) + "/notice";
+      lien.target = "_blank";
+      lien.rel = "noopener";
+      lien.setAttribute("aria-label", "Ouvrir la notice (nouvel onglet)");
+      li.append(lien);
+    } else {
+      li.append(el("span", "absent", a.notice === "restreinte" ? "réservée aux destinataires du rapport" : "pas encore disponible"));
     }
     liste.append(li);
   }

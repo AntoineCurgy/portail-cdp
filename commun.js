@@ -66,6 +66,12 @@ function pastille(statut) {
 // par Antoine fait autorite, 2026-10-08), sinon l'etat mesure de son dernier passage.
 function etatAffiche(r) { return r.construction ? "construction" : r.etat; }
 
+// Une ligne de rapport ne se montre que si elle porte un bouton « Télécharger », grisé ou non
+// (Antoine, 2026-10-30 : « si ya pas de bouton télécharger, ya pas de ligne ») : une interface et
+// un rapport d'une automatisation en construction n'en ont pas, ils sortent de l'onglet et des comptes.
+// Un rapport en accès restreint garde sa ligne (son bouton « Accès restreint »).
+function rapportMontre(r) { return !r.acces || !(r.livrable === "interface" || r.construction); }
+
 // "2026-10-07T07:02:51+00:00" -> "09:02" (heure de Paris)
 // Le mot d'un dernier passage : « échec », « écarts », « alerte », sinon « abouti » (« ok », « à voir »).
 function motPassage(resultat) {

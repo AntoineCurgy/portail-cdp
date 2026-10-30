@@ -19,7 +19,7 @@ function urlRapport(r) { return API + "/api/rapports/" + encodeURIComponent(r.id
 
 function vueRapports([donnees]) {
   majBandeau(donnees.maj);
-  const raps = [...donnees.rapports].sort((a, b) => String(a.sujet).localeCompare(String(b.sujet), "fr"));
+  const raps = donnees.rapports.filter(rapportMontre).sort((a, b) => String(a.sujet).localeCompare(String(b.sujet), "fr"));
   const f = filtres;
   const restreints = raps.filter((r) => !r.acces).length;
   const avis = el("p", "avis");
