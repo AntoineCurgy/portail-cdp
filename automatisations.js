@@ -160,8 +160,10 @@ function ligneAuto(a) {
 // ------------------------------------------------------------------ la documentation
 // Une fenetre, quatre pieces, un bandeau vert si la documentation suit la version en service,
 // orange sinon ; le bouton reste grise tant qu'aucune piece n'est publiee (Antoine, 2026-10-22).
+// Le script ne se telecharge plus (Antoine, 2026-10-30) ; pour le remettre :
+// ["script", "Script", "texte"], et "script" dans api.PIECES_SERVIES.
 const PIECES_DOC = [["documentation", "Documentation", "PDF"], ["classeur", "Dossier de l'automatisation", "Excel"],
-  ["historique", "Historique des versions", "Excel"], ["script", "Script", "texte"]];
+  ["historique", "Historique des versions", "Excel"]];
 const COULEUR_DOC = { vert: "var(--vert)", orange: "var(--ambre)" };
 let fenetreDoc = null;
 

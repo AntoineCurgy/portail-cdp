@@ -146,8 +146,7 @@ a { color: var(--marque); }
 /* Telecharger et Notice, cote a cote, la meme largeur ; la notice en bleu nuit avec un livre, le
    telechargement avec sa fleche (Antoine, 2026-10-23 : la variante 1 et « le petit symbole à coté de télécharger ») */
 .btn.b-l { width: 8.75rem; }
-.btn.b-notice { background-color: var(--nuit); }
-.btn.b-notice.eteint { background-color: var(--surface2); }
+/* « Notice » a la couleur de « Telecharger » (Antoine, 2026-10-30) ; seule l'icone du livre les distingue */
 
 .histo { display: inline-flex; gap: 3px; vertical-align: middle; }
 .h { display: inline-block; width: .8rem; height: .8rem; border-radius: 3px; }
