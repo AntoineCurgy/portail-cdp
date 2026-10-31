@@ -27,6 +27,10 @@ function vueAutomatisations([donnees]) {
   donneesAutos = donnees;
   majBandeau(donnees.maj);
   const autos = donnees.automatisations;
+  if (!autos.length) {
+    return [el("h1", null, "Automatisations"), vueVide("Aucune automatisation déployée",
+      "Une automatisation fait chaque jour, seule, un travail répétitif entre vos logiciels, et vous en rend compte ici.")];
+  }
   const n = compter(autos);
   const f = filtres;
 
@@ -343,7 +347,8 @@ function ouvrirFiche(id) {
     section("Quand elle tourne", quand),
     section("Dernier passage", ...dernier),
     section("Huit derniers passages", huit),
-    section("Rapports produits", raps)], depuis);
+    section("Rapports produits", raps),
+    section("Une demande, un retour, une correction ?", boutonDemande({ id: a.id, nom: a.nom }, "btn dm-f", "Faire une demande"))], depuis);
   if (rangee) rangee.scrollIntoView({ block: "nearest" });
 }
 

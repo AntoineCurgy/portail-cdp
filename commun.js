@@ -6,11 +6,13 @@
 // icones, balisage constant ecrit ici.
 "use strict";
 
-// En local, page et API sur `localhost` : meme site, donc le cookie strict passe.
+// En local, page et API sur `localhost` : meme site, donc le cookie strict passe. Ailleurs, l'adresse
+// de l'API vient de la fiche du client (`clients/<client>.json`, « api ») : la page ne la deduit plus de
+// son adresse, pour pouvoir etre servie en chemin sous 88systems.io (/cdp, /te, /demo ; DEC_00166).
 const HOTE = location.hostname;
 const API = (HOTE === "localhost" || HOTE === "127.0.0.1" || HOTE === "")
   ? "http://localhost:8790"
-  : "https://api-" + HOTE;   // portail-cdp.88systems.io -> api-portail-cdp.88systems.io
+  : "https://api-portail-cdp.88systems.io";
 const DELAI = 15000;
 const CONTACT = "acurgy-ext@compagniedephalsbourg.com";
 // Trois etats (Antoine, 2026-10-05) ; « a_valider » est ramene a « ok » a la lecture.
@@ -27,6 +29,10 @@ const ICONES = {
   // le livre ouvert de la notice, la fleche du telechargement (Antoine, 2026-10-23)
   livre: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
   telecharger: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+  // la bulle du bouton « Faire une demande » (DEC_00165, 2026-10-31)
+  bulle: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  // la carte pliee de l'onglet Cartographie (DEC_00181, 2026-10-31)
+  carte: '<polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>',
 };
 
 const $ = (id) => document.getElementById(id);
@@ -172,6 +178,7 @@ const SOURCES = {
   rapports: { chemin: "/api/rapports", verifier: (d) => Array.isArray(d.rapports),
               normaliser: (d) => { for (const r of d.rapports) if (r && r.etat === "a_valider") r.etat = "ok"; return d; } },
   parametres: { chemin: "/api/parametres", verifier: (d) => Array.isArray(d.lignes) },
+  cartographie: { chemin: "/api/cartographie", verifier: (d) => typeof d.publiee === "boolean" },
 };
 
 // ------------------------------------------------------------------ le cache (comme l'app KCP)
@@ -180,7 +187,7 @@ const SOURCES = {
 // deconnexion et a la perte de session. Le resume et le classeur ne sont jamais gardes.
 // Le stockage peut manquer (navigation privee, site bloque) : tout marche sans lui.
 
-const PREFIXE = "portail:";
+const PREFIXE = "portail:cdp:";   // un cache par client : servis en chemins, les portails partagent une origine (DEC_00166)
 
 function relire(cle) {
   try { return JSON.parse(localStorage.getItem(PREFIXE + cle) || "null"); } catch (_) { return null; }
@@ -230,7 +237,7 @@ function horsLigne() {
 
 // ------------------------------------------------------------------ session et chrome
 
-const PAGES = ["index.html", "rapports.html", "automatisations.html", "agents.html", "parametres.html", "aide.html"];
+const PAGES = ["index.html", "rapports.html", "automatisations.html", "agents.html", "cartographie.html", "parametres.html", "aide.html"];
 
 function pageCourante() {
   const p = location.pathname.split("/").pop() || "index.html";
@@ -261,8 +268,21 @@ function poserMoi() {
   avatar.title = moi.nom ? moi.nom + " · " + adresse : adresse;
   avatar.setAttribute("aria-label", "Connecté : " + (moi.nom || adresse));
   if (!$("maj").textContent) majBandeau(moi.maj);
-  // l'onglet « Agents » disparait quand la feuille masque chaque agent (Antoine, 2026-10-16)
-  for (const l of document.querySelectorAll('a[data-page="agents"]')) l.hidden = moi.onglet_agents === false;
+  // L'onglet « Agents » reste toujours visible, vide ou non (Antoine, 2026-10-31, PCP049-1031-c : « toujours
+  // montrer Agents IA, Automatisations, Rapports et Cartographie », pour donner envie) ; il disparaissait quand
+  // la feuille masquait chaque agent (2026-10-16).
+}
+
+// Un onglet vide le dit, et dit ce qu'il pourrait porter (PCP049-1031-c, 2026-10-31).
+function vueVide(titre, texte) {
+  const c = el("div", "carte ca");
+  c.append(el("p", "ca-t", titre), el("p", "discret", texte));
+  const l = el("a", "lien-c", CONTACT);
+  l.href = "mailto:" + CONTACT;
+  const p = el("p", "discret", "Pour en savoir plus : ");
+  p.append(l);
+  c.append(p);
+  return c;
 }
 
 // L'adresse connectee, du cache si on l'a (la page s'affiche tout de suite), revalidee en
@@ -454,3 +474,112 @@ function carres(passages) {
   const suite = q.toString() ? "?" + q.toString() : "";
   location.replace(cible + suite + (page === "aide" && sous ? "#" + sous : ""));
 })();
+
+// ------------------------------------------------------------------ faire une demande
+// Une demande, un retour ou une correction sur une automatisation ou l'un de ses rapports (DEC_00165,
+// Antoine, 2026-10-31) : l'API la depose en note chez la cellule qui porte l'automatisation.
+const NATURES_DEMANDE = [["demande", "Une demande"], ["retour", "Un retour"], ["correction", "Une correction"]];
+const TEXTE_DEMANDE_MAX = 4000;
+let fenetreDemande = null;
+
+function fermerDemande() {
+  if (!fenetreDemande) return;
+  const { voile, depuis } = fenetreDemande;
+  fenetreDemande = null;
+  voile.remove();
+  if (depuis && document.contains(depuis)) depuis.focus();
+}
+
+function boutonDemande(cible, classe, texte) {
+  const b = bouton(classe, texte);
+  b.prepend(ico("bulle", 15));
+  b.setAttribute("aria-label", "Faire une demande sur " + (cible.rapport || cible.nom));
+  b.title = "Faire une demande";
+  b.addEventListener("click", (e) => {
+    e.stopPropagation();
+    ouvrirDemande(cible, b);
+  });
+  return b;
+}
+
+function ouvrirDemande(cible, depuis) {
+  fermerDemande();
+  const voile = el("div", "doc-voile");
+  voile.setAttribute("role", "dialog");
+  voile.setAttribute("aria-modal", "true");
+  voile.setAttribute("aria-labelledby", "dm-titre");
+  const fen = el("form", "doc-fen dm");
+  fen.noValidate = true;
+  const x = bouton("doc-x", "×");
+  x.setAttribute("aria-label", "Fermer");
+  x.addEventListener("click", fermerDemande);
+  const titre = el("h2", null, "Faire une demande");
+  titre.id = "dm-titre";
+  const sur = el("p", "dm-sur", cible.rapport ? `Rapport « ${cible.rapport} »` : `Automatisation « ${cible.nom} »`);
+  const choix = el("div", "dm-n");
+  choix.setAttribute("role", "radiogroup");
+  choix.setAttribute("aria-label", "Nature");
+  for (const [cle, mot] of NATURES_DEMANDE) {
+    const l = el("label");
+    const r = el("input");
+    r.type = "radio";
+    r.name = "nature";
+    r.value = cle;
+    r.checked = cle === "demande";
+    l.append(r, mot);
+    choix.append(l);
+  }
+  const zone = el("textarea", "dm-t");
+  zone.rows = 6;
+  zone.maxLength = TEXTE_DEMANDE_MAX;
+  zone.placeholder = "Décrivez votre demande : ce que vous voyez, ce que vous attendez.";
+  zone.setAttribute("aria-label", "Votre message");
+  const pied = el("div", "dm-pied");
+  const message = el("p", "message");
+  message.setAttribute("aria-live", "polite");
+  const envoyer = bouton("btn", "Envoyer");
+  envoyer.type = "submit";
+  pied.append(message, envoyer);
+  fen.append(x, titre, sur, choix, zone, pied);
+  fen.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const texte = zone.value.trim();
+    if (!texte) {
+      message.className = "message erreur";
+      message.textContent = "Écrivez votre message avant d'envoyer.";
+      zone.focus();
+      return;
+    }
+    envoyer.disabled = true;
+    message.className = "message";
+    message.textContent = "Envoi…";
+    const nature = (fen.querySelector("input[name=nature]:checked") || {}).value || "demande";
+    const r = await appeler("POST", "/api/demandes", { id: cible.id, rapport: cible.rapport || "", nature, texte });
+    if (r.statut === 200) {
+      fen.replaceChildren(x, titre, sur, el("p", "dm-ok", "Votre demande est transmise. L'équipe qui suit cette automatisation la traite."));
+      x.focus();
+      return;
+    }
+    envoyer.disabled = false;
+    message.className = "message erreur";
+    message.textContent = r.statut === 401 ? "Votre session a expiré : reconnectez-vous."
+      : (r.donnees && r.donnees.erreur) ? `Envoi impossible : ${r.donnees.erreur}.`
+      : "Envoi impossible pour l'instant. Réessayez dans quelques minutes.";
+  });
+  voile.append(fen);
+  voile.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!fen.contains(e.target)) fermerDemande();
+  });
+  document.body.append(voile);
+  fenetreDemande = { voile, depuis };
+  zone.focus();
+}
+
+// Echap ferme d'abord la fenetre de demande, et seulement elle
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && fenetreDemande) {
+    e.stopImmediatePropagation();
+    fermerDemande();
+  }
+}, true);

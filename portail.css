@@ -399,3 +399,22 @@ div.lb:has(.lb-o:focus-visible) { outline: 2px solid var(--marque); outline-offs
 .doc-l li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .65rem 0; border-top: 1px solid var(--filet); }
 .doc-l .f { color: var(--discret); font-size: .78rem; }
 .doc-l .absent { color: var(--pale); font-size: .8rem; }
+/* l'onglet Cartographie (DEC_00181, 2026-10-31) : une carte, un bouton qui ouvre la carte dans un nouvel onglet */
+.ca { display: flex; flex-direction: column; align-items: flex-start; gap: .4rem; padding: 1.4rem 1.5rem; max-width: 40rem; }
+.ca .ca-t { margin: 0; font-weight: 600; font-size: 1rem; }
+.ca .discret { margin: 0 0 .5rem; }
+.ca-b { display: inline-flex; align-items: center; gap: .45rem; text-decoration: none; }
+/* la fenetre « Faire une demande » (DEC_00165, 2026-10-31) : celle de la documentation, avec un formulaire */
+.dm-sur { margin: -.4rem 0 .9rem; color: var(--discret); font-size: .85rem; }
+.dm-n { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .8rem; }
+.dm-n label { display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .7rem; border: 1px solid var(--bord); border-radius: 999px; font-size: .82rem; cursor: pointer; }
+.dm-n label:has(input:checked) { border-color: var(--marque); background-color: var(--rail-on); color: var(--marque); font-weight: 600; }
+.dm-n input { margin: 0; accent-color: var(--marque); }
+.dm-t { display: block; width: 100%; box-sizing: border-box; padding: .6rem .7rem; border: 1px solid var(--bord); border-radius: 8px; font: inherit; font-size: .88rem; resize: vertical; }
+.dm-t:focus { outline: 2px solid var(--marque); outline-offset: 1px; }
+.dm-pied { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: .8rem; }
+.dm-pied .message { margin: 0; }
+.dm-ok { margin: .4rem 0 .2rem; padding: .7rem .8rem; border-left: 4px solid var(--vert); border-radius: 0 8px 8px 0; background-color: #e3f1e8; font-size: .88rem; }
+.dm-f { display: inline-flex; align-items: center; gap: .45rem; }
+.dm-b { display: inline-flex; align-items: center; margin-left: .45rem; padding: .15rem; vertical-align: middle; background-color: transparent; border: 0; border-radius: 4px; color: var(--pale); cursor: pointer; }
+.dm-b:hover, .dm-b:focus-visible { color: var(--marque); background-color: var(--survol); }

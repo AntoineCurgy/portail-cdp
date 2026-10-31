@@ -91,6 +91,10 @@ function vueAgents([autosD]) {
   const masques = new Set(autosD.agents_masques || []);
   agents = AGENTS.filter((a) => !masques.has(a.id));
   const nb = agents.length;
+  if (!nb) {
+    return [el("h1", null, "Agents"), vueVide("Aucun agent IA déployé",
+      "Option non souscrite. Un agent IA s'appuie sur vos automatisations pour traiter une tâche à votre place, de bout en bout.")];
+  }
   const enService = agents.filter((a) => statutAgent(a) === "ok").length;
   const utilisees = new Set(agents.flatMap((a) => a.outils)).size;
 

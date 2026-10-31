@@ -20,6 +20,10 @@ function urlRapport(r) { return API + "/api/rapports/" + encodeURIComponent(r.id
 function vueRapports([donnees]) {
   majBandeau(donnees.maj);
   const raps = donnees.rapports.filter(rapportMontre).sort((a, b) => String(a.sujet).localeCompare(String(b.sujet), "fr"));
+  if (!raps.length) {
+    return [el("h1", null, "Rapports"), vueVide("Aucun rapport déployé",
+      "Un rapport vous donne chaque jour, dans un classeur et par courriel, l'état d'un contrôle entre vos logiciels.")];
+  }
   const f = filtres;
   const restreints = raps.filter((r) => !r.acces).length;
   const avis = el("p", "avis");
@@ -150,6 +154,8 @@ function ligneRapport(r, avis) {
     action.append(b);
   } else {
     nom.textContent = String(r.sujet);
+    // une demande sur ce rapport, chez la cellule qui porte son automatisation (DEC_00165, 2026-10-31)
+    nom.append(boutonDemande({ id: r.automatisation, nom: r.sujet, rapport: String(r.sujet) }, "dm-b"));
     const t = tag(etatAffiche(r));
     if (t) etat.append(t);
     // la date et l'heure du dernier passage, a Paris (demande des metiers, 2026-10-08)
