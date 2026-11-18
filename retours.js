@@ -74,15 +74,16 @@ function vueRetours([rets, autos]) {
 
   const carte = el("div", "carte gd-c");
   const table = el("table", "gd rt");
+  // RGI_01902 (DEC_01207) : le numero de ticket, celui de la demande sans son prefixe interne (le prefixe et les zeros de tete retires)
   const cg = el("colgroup");
-  for (const w of ["7.5rem", "7rem", "8rem", "13rem", "", "9rem"]) {
+  for (const w of ["5.5rem", "7.5rem", "7rem", "8rem", "13rem", "", "9rem"]) {
     const c = el("col");
     if (w) c.style.width = w;
     cg.append(c);
   }
   const thead = el("thead");
   const tr = el("tr");
-  for (const texte of ["Date", "État", "Type", "Automatisation", "Objet", "De"]) {
+  for (const texte of ["Ticket", "Date", "État", "Type", "Automatisation", "Objet", "De"]) {
     const th = el("th", null, texte);
     th.scope = "col";
     tr.append(th);
@@ -95,7 +96,7 @@ function vueRetours([rets, autos]) {
     l.setAttribute("aria-label", `${r.objet}, ${(ETATS_RETOUR[r.etat] || ETATS_RETOUR.recu)[0]} : voir le détail`);
     const e = el("td");
     e.append(tagRetour(r.etat));
-    l.append(el("td", "mono gd-date", jourCourtRetour(r.date)), e, el("td", null, MOT_TYPE[r.type] || "À qualifier"),
+    l.append(el("td", "mono", numeroTicket(r.id)), el("td", "mono gd-date", jourCourtRetour(r.date)), e, el("td", null, MOT_TYPE[r.type] || "À qualifier"),
              el("td", null, r.nom), el("td", "rt-o", r.objet), el("td", "discret", r.de || ""));
     // le clic ne remonte pas au document, qui fermerait aussitot le panneau ouvert (commun.js)
     l.addEventListener("click", (ev) => { ev.stopPropagation(); ouvrirDetail(r, l); });
@@ -104,7 +105,7 @@ function vueRetours([rets, autos]) {
     return [l, r];
   });
   table.append(cg, thead, tb);
-  colonnesAuContenu(table, 5, true);   // l'objet du retour prend la place qui reste (DEC_00853)
+  colonnesAuContenu(table, 6, true);   // l'objet du retour prend la place qui reste (DEC_00853)
   carte.append(table);
   const vide = el("p", "vide", "Aucun retour ne correspond.");
   vide.hidden = true;
@@ -114,7 +115,7 @@ function vueRetours([rets, autos]) {
     const garde = (GROUPES.find((g) => g[0] === filtres.g) || GROUPES[0])[2];
     let total = 0;
     for (const [l, r] of lignes) {
-      const texte = `${r.objet} ${r.demande} ${r.nom} ${r.de}`.toLowerCase();
+      const texte = `${numeroTicket(r.id)} ${r.objet} ${r.demande} ${r.nom} ${r.de}`.toLowerCase();
       const ok = garde(r) && (!filtres.q || texte.includes(filtres.q));
       l.hidden = !ok;
       total += ok ? 1 : 0;
@@ -128,6 +129,12 @@ function vueRetours([rets, autos]) {
   return [figerTete(tete), carte, vide];
 }
 
+// RGI_01902 : le numero sans prefixe ni zeros de tete ; une autre forme ne donne rien
+function numeroTicket(ident) {
+  const m = /^[A-Z]{3}_0*(\d+)$/.exec(String(ident || ""));
+  return m ? m[1] : "";
+}
+
 // Le panneau d'un retour : son detail, puis son historique (la creation, chaque version publiee qui le cite).
 function ouvrirDetail(r, depuis) {
   const titre = el("h2", null, r.objet);
@@ -135,7 +142,7 @@ function ouvrirDetail(r, depuis) {
   const tete = el("p", "rt-tete");
   tete.append(tagRetour(r.etat), " ", el("span", "tag", MOT_TYPE[r.type] || "À qualifier"));
   const dl = el("dl", "rt-dl");
-  for (const [mot, valeur] of [["Automatisation", r.nom], ["Date", r.date], ["De", r.de || "—"]]) {
+  for (const [mot, valeur] of [["Ticket", numeroTicket(r.id) || "—"], ["Automatisation", r.nom], ["Date", r.date], ["De", r.de || "—"]]) {
     dl.append(el("dt", null, mot), el("dd", null, valeur));
   }
   const demande = el("section", "fi-s");
