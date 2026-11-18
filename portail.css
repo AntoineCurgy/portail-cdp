@@ -1,0 +1,703 @@
+/* Portail des rapports : le rendu de la maquette v14, ecrit une fois. Les couleurs et la typographie facon Tesla depuis le
+   2026-11-10 (DEC_00755, option B de la planche v2 du coup d'oeil) : encre #171a20, gris neutres, fond #f4f4f4, cartes sans
+   contour ni ombre, graisse 500 ; la mise en page ne change pas (DEC_00753). */
+
+:root {
+  --marque: #1f4e5f;
+  --trait: #9fc3ce;
+  --fond: #f4f4f4;
+  --surface: #ffffff;
+  --surface2: #e9e9e9;
+  --bord: #dcdddf;
+  --filet: #e4e5e7;
+  --survol: #f7f7f7;
+  --encre: #171a20;
+  --encre2: #2b2e33;
+  --discret: #4b4d52;
+  --pale: #727478;
+  --vert: #1e7a4b;
+  --vert-clair: #8cc7a6;
+  --rouge: #9b2c2c;
+  --ambre: #b7791f;
+  --rail-on: #d6e6eb;   /* un cran plus fonce : le fond de l onglet actif se voyait a peine sur blanc (Antoine, 2026-11-13, PCP049-1113-n : « Je crois que c est un probleme de contraste ») */
+  --clair: #cfe1e6;
+  --ombre-fen: 0 18px 50px rgba(22, 21, 15, .25);
+  --voile: rgba(22, 21, 15, .45);
+  --texte: Helvetica, Arial, sans-serif;   /* Helvetica partout, choisie par Antoine sur capture le 2026-11-11 (DEC_00855) : « celle qui me va » ; Arial a defaut */
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --hb: 4.6rem;
+  --rail: 6.5rem;
+  /* la charte du portail (DEC_00824, DEC_00827) : les couleurs ecrites en dur avant, nommees par leur role */
+  --bord-champ: #b9bbbe;         /* contour des champs et des boutons blancs */
+  --bord-champ-survol: #a9abad;
+  --vert-f: #e3f1e8;             /* fonds teintes des etats */
+  --rouge-f: #f6e3e3;
+  --ambre-f: #fbf1df;
+  --rouge-bord: #e7c3c3;         /* la carte d'un systeme en panne : son contour */
+  --rouge-p: #fdf7f7;            /* et son fond, plus pale que celui d'un etat */
+  --sur-marque: rgba(255, 255, 255, .32);   /* filet blanc sur le bandeau */
+  /* sept tailles (DEC_00827 ; 11 px a rejoint 12 px, DEC_00842, 2A) */
+  --champ-tel: 16px;   /* le texte d un champ sur telephone : hors des tailles de la charte, le controle des pages porte l exception (NTE de PCP051, 2026-11-11) */
+  --t-menu: 11px;   /* le libelle du menu de gauche seul, comme avant la charte (DEC_00853, choix 3A d'Antoine) */
+  --t-meta: 12px;
+  --t-petit: 13px;
+  --t-corps: 14px;
+  --t-titre-carte: 15px;
+  --t-titre-section: 17px;
+  --t-titre-page: 21px;
+  --t-chiffre: 24px;
+  /* quatre rayons, la pilule et le rond (DEC_00827 ; 6 px a rejoint 4 px, DEC_00842, 4B) */
+  --r-petit: 4px;
+  --r-bouton: 10px;
+  --r-carte: 12px;
+  --r-pilule: 999px;
+  --r-rond: 50%;
+  /* deux hauteurs de controle (DEC_00933, choix 3C et 4A d'Antoine du 2026-11-13) : 32 px pour tout bouton, champ,
+     recherche et barre segmentee ; 30 px pour une pastille de choix et la croix d'une fenetre */
+  --h-controle: 2rem;
+  --h-pastille: 1.875rem;
+  /* l'echelle d'espacement, celle de la page de pilotage (--s1 a --s6) et deux petits pas (DEC_00842, 5A) */
+  --s00: .125rem;   /* 2 px */
+  --s0: .25rem;     /* 4 px */
+  --s1: .5rem;      /* 8 px */
+  --s2: .75rem;     /* 12 px */
+  --s3: 1rem;       /* 16 px */
+  --s4: 1.5rem;     /* 24 px */
+  --s5: 2rem;       /* 32 px */
+  --s6: 3rem;       /* 48 px */
+}
+
+* { box-sizing: border-box; }
+/* fixe au bout du defilement : ni rebond ni bandeau blanc en haut ou en bas (Antoine, 2026-11-11) */
+html { scroll-padding-top: calc(var(--hb) + 1rem); background-color: var(--fond); overscroll-behavior: none; }
+body {
+  margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+  background-color: var(--fond); color: var(--encre); font: var(--t-corps)/1.5 var(--texte);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { margin: 0; line-height: 1.25; }
+p { margin: 0; }
+a { color: var(--marque); }
+:focus-visible { outline: 2px solid var(--marque); outline-offset: 2px; }
+[tabindex="-1"]:focus { outline: none; }
+[hidden] { display: none !important; }
+/* les onglets Retours et Emails, selon la session : la classe est posee des le <head> depuis le cache (commun.js) */
+html.sans-retours a[data-page="retours"], html.sans-envois a[data-page="envois"] { display: none !important; }
+.mono { font-family: var(--mono); }
+.discret { color: var(--discret); }
+.sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ico { flex: none; }
+.l88 { display: block; flex: none; }
+
+.evitement { position: absolute; left: 1rem; top: -4rem; z-index: 50; padding: var(--s1) var(--s3); border-radius: var(--r-bouton); background-color: var(--surface); color: var(--marque); font-weight: 500; }
+.evitement:focus { top: 1rem; }
+
+/* ------------------------------------------------------------ logo du client */
+/* L'image (300 x 220, fond blanc) vient de logo-cdp.css ; on n'en montre que
+   la zone utile (x 50-250, y 40-200), a l'echelle --k. */
+.logo-cdp {
+  --k: .325;
+  display: block; flex: none;
+  width: calc(200px * var(--k)); height: calc(160px * var(--k));
+  background-repeat: no-repeat;
+  background-size: calc(300px * var(--k)) calc(220px * var(--k));
+  background-position: calc(-50px * var(--k)) calc(-40px * var(--k));
+}
+.lc-haut { filter: invert(1); mix-blend-mode: screen; }
+.lc-pied { --k: .2375; mix-blend-mode: multiply; }
+
+/* ------------------------------------------------------------ bandeau */
+.haut { position: sticky; top: 0; z-index: 30; background-color: var(--marque); color: var(--surface); border-bottom: 1px solid var(--trait); }
+.b-in { display: flex; align-items: center; gap: var(--s3); padding: 0 var(--s3); height: var(--hb); font-size: var(--t-corps); }
+.b-t2 { display: flex; flex-direction: column; border-left: 1px solid var(--sur-marque); padding-left: var(--s3); font-weight: 500; font-size: var(--t-titre-section); line-height: 1.2; }
+.b-t2 span { font-weight: 400; font-size: var(--t-meta); opacity: .75; letter-spacing: .12em; text-transform: uppercase; }
+.b-sp { flex: 1; }
+.b-op { display: inline-flex; align-items: center; gap: var(--s1); font-size: var(--t-meta); opacity: .9; }
+.b-barre { width: 1px; height: 1.6rem; background-color: var(--sur-marque); }
+.b-m { opacity: .8; font-size: var(--t-meta); }
+.avatar { display: inline-grid; place-items: center; width: 2.1rem; height: 2.1rem; border-radius: var(--r-rond); background-color: var(--surface); color: var(--marque); font-weight: 500; font-size: var(--t-meta); flex: none; }
+
+/* ------------------------------------------------------------ cadre de l'application */
+.appli {
+  flex: 1; display: grid; grid-template-columns: var(--rail) minmax(0, 1fr);
+  /* la colonne blanche du rail descend jusqu'en bas, a cote du pied */
+  background-image: linear-gradient(to right, var(--surface) calc(var(--rail) - 1px), var(--bord) calc(var(--rail) - 1px), var(--bord) var(--rail), transparent var(--rail));
+}
+/* la colonne garde la hauteur de l'ecran ; plus haute que lui, elle defile en elle-meme, jamais sous le pied de page (Antoine, 2026-11-11) */
+.rail { position: sticky; top: var(--hb); align-self: start; height: calc(100vh - var(--hb)); display: flex; flex-direction: column; padding: var(--s3) var(--s1); background-color: var(--surface); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.rail nav { display: flex; flex-direction: column; gap: .15rem; }   /* le menu d'avant la charte, mesure sur 0813442 (DEC_00853, 3A) */
+.m-bas { display: flex; flex-direction: column; margin-top: auto; }
+.rail a, .rail button {
+  display: flex; flex-direction: column; align-items: center; gap: .2rem; width: 100%;
+  padding: .4rem .2rem; border: 0; border-radius: var(--r-bouton); background-color: transparent;
+  color: var(--encre2); font: inherit; font-size: var(--t-menu); font-weight: 500; text-align: center; text-decoration: none; cursor: pointer;
+  white-space: nowrap;   /* un libelle sur une ligne, « Se déconnecter » compris */
+}
+/* les icones du rail : encre2, libelle .7rem en 500 (Antoine, 2026-11-10) ; 16 px et rapprochees depuis le 2026-11-11 (DEC_00835, 2C) */
+/* une icone plus nette, au cas par cas : l'encre du texte et un trait de 1,5 (reponse d'Antoine a PCP056-1111-ba, DEC_00852) ;
+   l'onglet courant du rail garde sa couleur */
+.ico .net { stroke: var(--encre); }
+.rail a[aria-current="page"] .ico .net, .dm-b:hover .ico .net, .dm-b:focus-visible .ico .net { stroke: currentColor; }
+.rail .ico { width: 16px; height: 16px; padding: .25rem .8rem; border-radius: var(--r-pilule); box-sizing: content-box; }   /* 16 px (Antoine, 2026-11-11, DEC_00835, 2C) */
+.rail a:hover .ico, .rail button:hover .ico { background-color: color-mix(in srgb, var(--discret) 15%, transparent); }
+.rail a[aria-current="page"] { color: var(--marque); font-weight: 500; }
+.rail a[aria-current="page"] .ico { background-color: var(--rail-on); color: var(--marque); }
+
+.droite { display: flex; flex-direction: column; min-width: 0; min-height: calc(100vh - var(--hb)); }
+.droite > main { flex: 1; }
+.contenu { max-width: 110rem; width: 100%; margin: 0 auto; padding: var(--s4) var(--s5) var(--s6); min-width: 0; display: flex; flex-direction: column; gap: var(--s3); }
+.contenu h1 { font-size: var(--t-titre-page); letter-spacing: -.015em; }
+.sous-titre { margin: calc(-1 * var(--s2)) 0 0; color: var(--discret); }
+.chargement { color: var(--discret); }
+.erreur { color: var(--rouge); }
+
+/* ------------------------------------------------------------ pied */
+.bas { background-color: var(--filet); color: var(--encre2); font-size: var(--t-petit); border-top: 1px solid var(--trait); }
+.bas-in { padding: var(--s3) var(--s4); display: flex; justify-content: space-between; align-items: center; gap: var(--s5); flex-wrap: wrap; }
+.bas p { line-height: 1.6; }
+.p-g { display: flex; align-items: center; gap: var(--s3); }
+.p-d { font-size: var(--t-meta); opacity: .8; }
+.duo { display: inline-flex; align-items: center; gap: var(--s2); }
+.b-x { opacity: .5; }
+.p-contact { display: flex; flex-direction: column; gap: var(--s0); }
+.p-h { font-weight: 500; text-transform: uppercase; letter-spacing: .1em; font-size: var(--t-meta); }
+
+/* ------------------------------------------------------------ elements communs */
+/* Le contour et l'ombre de la page de pilotage (Antoine, 2026-11-04, DEC_00520, option 10B) */
+.carte { background-color: var(--surface); border: 1.5px solid transparent; border-radius: var(--r-carte); padding: var(--s3); }
+.c-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--s3); gap: var(--s3); flex-wrap: wrap; }
+.c-h h2 { font-size: var(--t-titre-carte); color: var(--marque); display: flex; align-items: center; gap: var(--s1); }
+.c-pied { display: flex; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; margin-top: var(--s3); font-size: var(--t-petit); color: var(--discret); }
+.legende { display: flex; gap: var(--s3); flex-wrap: wrap; font-size: var(--t-meta); color: var(--discret); }
+.legende > span { display: inline-flex; align-items: center; gap: var(--s0); }
+
+.pt { display: inline-block; width: .65rem; height: .65rem; border-radius: var(--r-rond); flex: none; }
+.pt.ok { background-color: var(--vert); }
+.pt.panne { background-color: var(--rouge); }
+.pt.construction { background-color: transparent; border: 1.5px solid var(--pale); }
+.pt.tous { background-image: conic-gradient(var(--vert) calc(var(--ok, 60) * 1%), var(--rouge) 0 calc(var(--hs, 70) * 1%), var(--surface2) 0); }
+
+.tag { display: inline-flex; align-items: center; gap: var(--s0); font: 500 var(--t-petit)/1.5 var(--texte); vertical-align: middle; }
+/* un point de couleur et le mot, sans fond (Antoine, 2026-11-04, DEC_00520, option 8C) */
+.tag[class*="t-"]::before { content: ""; flex: none; width: var(--s1); height: var(--s1); border-radius: var(--r-rond); background-color: currentColor; }
+.t-vert { color: var(--vert); }
+.tag:not([class*="t-"]) { font-weight: 400; color: var(--encre2); }   /* le type d'un retour : une metadonnee, sans gras */
+.gd .tag { white-space: nowrap; }   /* une etiquette tient sur une ligne (2026-10-08) */
+.gd-date { text-align: left; }
+.t-ambre { color: var(--ambre); }
+.t-rouge { color: var(--rouge); }
+.t-ferme { color: var(--discret); }
+.t-ferme::before { background-color: var(--pale); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s0);
+  height: var(--h-controle); box-sizing: border-box; padding: 0 var(--s3); border: 0; border-radius: var(--r-bouton); background-color: var(--marque); color: var(--surface);
+  font: inherit; font-weight: 500; font-size: var(--t-petit); text-decoration: none; white-space: nowrap; cursor: pointer;
+}
+.btn.eteint { background-color: var(--surface2); color: var(--pale); cursor: not-allowed; }
+/* le bouton blanc borde de la page de pilotage, pour un geste secondaire (DEC_00520, option 7C) */
+.btn.btn-s { background-color: var(--surface); color: var(--encre); border: 1.5px solid transparent; padding: 0 calc(var(--s3) - 1.5px); }
+.btn.btn-s:hover { border-color: var(--encre); }
+.cad { display: inline-flex; vertical-align: -2px; margin-right: var(--s0); color: var(--discret); }
+.lien-r { font: inherit; font-size: var(--t-petit); background-color: transparent; border: 0; padding: 0; color: var(--discret); text-decoration: underline; cursor: pointer; white-space: nowrap; }
+/* Telecharger et Notice, cote a cote, la meme largeur ; la notice en bleu nuit avec un livre, le
+   telechargement avec sa fleche (Antoine, 2026-10-23 : la variante 1 et « le petit symbole à coté de télécharger ») */
+.btn.b-l { width: 8.75rem; }
+/* « Notice » a la couleur de « Telecharger » (Antoine, 2026-10-30) ; seule l'icone du livre les distingue */
+
+.histo { display: inline-flex; gap: 3px; vertical-align: middle; }
+.h { display: inline-block; width: .8rem; height: .8rem; border-radius: var(--r-petit); }
+.h.ok { background-color: var(--vert); }
+.h.voir { background-color: var(--vert-clair); }
+.h.panne { background-color: var(--rouge); }
+
+/* les filtres en petits groupes colles, avec leurs comptes, comme l'onglet Sessions de la page de pilotage ;
+   la recherche a droite (Antoine, 2026-11-04, DEC_00520, option 5C) */
+.gb-barre, .pe { display: inline-flex; flex-wrap: wrap; background-color: var(--surface); border: 1.5px solid var(--bord); border-radius: var(--r-pilule); overflow: hidden; align-self: flex-start; }
+.gb-o, .pe-b { display: inline-flex; align-items: center; height: var(--h-controle); box-sizing: border-box; font: inherit; font-size: var(--t-petit); border: 0; background-color: transparent; border-radius: 0; padding: 0 var(--s3); cursor: pointer; color: var(--encre2); white-space: nowrap; }
+.gb-o + .gb-o, .pe-b + .pe-b { border-left: 1.5px solid var(--bord); }
+.gb-o:hover, .pe-b:hover { background-color: var(--survol); }
+.gb-o span, .pe-b span { font: var(--t-meta) var(--mono); color: var(--discret); margin-left: var(--s0); }
+.gb-o[aria-pressed="true"], .pe-b[aria-pressed="true"] { background-color: var(--marque); color: var(--surface); font-weight: 500; }
+.gb-o[aria-pressed="true"] span, .pe-b[aria-pressed="true"] span { color: var(--clair); }
+.outils { display: flex; flex-direction: column; gap: var(--s2); align-items: flex-start; }
+.outils.ligne { flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); width: 100%; }
+/* Les champs de recherche, plus petits et plus nets (Antoine, 2026-11-11 : « un peu trop gros […] un design un peu plus
+   Tesla, un peu plus comme le reste maintenant, un peu plus sharp ») : la hauteur des barres de filtres, un trait fin, une
+   loupe discrete, le trait plus fonce au focus, sans halo. */
+.cherche input { font: inherit; font-size: var(--t-petit); height: var(--h-controle); box-sizing: border-box; padding: 0 var(--s2) 0 var(--s5); border: 1px solid var(--bord-champ); border-radius: var(--r-bouton); width: 15rem; max-width: 100%; color: var(--encre);
+  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235c5e62' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat .7rem center; }
+.cherche input::placeholder { color: var(--pale); }
+.cherche input:focus { outline: none; border-color: var(--encre2); }   /* un seul changement : rien au survol, un trait plus fonce quand on ecrit, sans animation (DEC_00958) */
+.vide { color: var(--discret); }
+.avis { font-size: var(--t-corps); color: var(--rouge); }
+.avis:empty { display: none; }
+
+/* ------------------------------------------------------------ tableau de bord */
+.ke { display: flex; align-items: center; gap: var(--s4); background-color: var(--surface); border: 1.5px solid transparent; border-radius: var(--r-carte); padding: var(--s3) var(--s4); flex-wrap: wrap; }
+.ke-anneau { width: 5.5rem; height: 5.5rem; border-radius: var(--r-rond); background-image: conic-gradient(var(--vert) calc(var(--p, 0) * 1%), var(--rouge-f) 0); display: grid; place-items: center; flex: none; }
+.ke-anneau span { display: grid; place-items: center; width: 4.2rem; height: 4.2rem; border-radius: var(--r-rond); background-color: var(--surface); font: 500 var(--t-corps) var(--mono); color: var(--discret); }
+.ke-anneau strong { font-size: var(--t-titre-page); color: var(--vert); }
+.ke-t { flex: 1; }
+.ke-titre { font-size: var(--t-titre-section); font-weight: 500; }
+.ke-s { font-size: var(--t-petit); color: var(--discret); }
+.ke-d { border-left: 1px solid var(--bord); padding-left: var(--s4); font-size: var(--t-corps); display: flex; flex-direction: column; gap: var(--s0); }
+.ke-d strong { font: 500 var(--t-titre-section) var(--mono); }
+.ambre { color: var(--ambre); }
+
+.grille { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(2.9rem, 1fr)); gap: var(--s1); }
+.case { display: flex; flex-direction: column; align-items: center; gap: var(--s0); padding: var(--s1) 0; border-radius: var(--r-bouton); background-color: var(--fond); color: var(--encre); font: 500 var(--t-meta)/1 var(--mono); text-decoration: none; }
+.case:hover { box-shadow: 0 0 0 2px var(--marque) inset; }
+.case.ok .pt { background-color: var(--vert); }
+.case.panne .pt { background-color: var(--rouge); }
+.case.construction .pt { background-color: transparent; border: 1.5px solid var(--pale); }
+.case.construction { color: var(--discret); font-weight: 400; }
+.case.panne { background-color: var(--rouge-f); color: var(--rouge); }
+
+.srl { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: var(--s1); }
+.sr-p {
+  display: grid; grid-template-columns: .8rem 1fr; gap: var(--s00) var(--s1); align-items: center;
+  padding: var(--s2) var(--s2); border: 1px solid var(--bord); border-radius: var(--r-bouton); background-color: var(--surface);
+  color: var(--encre); font: inherit; text-align: left; text-decoration: none; cursor: pointer;
+}
+.sr-p span:last-child { grid-column: 2; font-size: var(--t-meta); color: var(--discret); }
+.sr-p:hover { border-color: var(--marque); }
+.sr-p.panne { border-color: var(--rouge-bord); background-color: var(--rouge-p); }
+.sr-p.tous strong { color: var(--marque); }
+.sr-p[aria-pressed="true"] { border-color: var(--marque); box-shadow: 0 0 0 2px var(--marque) inset; background-color: var(--rail-on); }
+
+/* ------------------------------------------------------------ rapports */
+.gd-c { position: relative; padding: var(--s0) var(--s3) var(--s1); overflow-x: auto; }   /* relative : les .sr du tableau restent dans la zone qui defile */
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: var(--s1) var(--s1); border-bottom: 1px solid var(--filet); font-size: var(--t-corps); vertical-align: middle; }
+/* l'en-tete en casse normale (DEC_00520, option 1B), un filet un peu plus marque sous lui */
+thead th { font-size: var(--t-meta); color: var(--discret); font-weight: 500; padding-top: var(--s2); border-bottom: 1.5px solid var(--bord); }
+/* Retouches du tableau (option 6A retouchee, DEC_00520) : une hauteur de ligne egale, le survol sur toute la
+   ligne, les chiffres et les dates en colonnes, pas de filet sous la derniere ligne (la carte la borde deja) */
+.gd tbody > tr:not(.gd-b) > * { height: 3.5rem; }
+.gd tbody > tr:not(.gd-b):hover > * { background-color: var(--survol); }
+.gd tbody:last-child > tr:last-child > * { border-bottom: 0; }
+.gd .mono, .gd-date { font-variant-numeric: tabular-nums; }
+tbody th { font-weight: 500; }
+.gd { table-layout: fixed; min-width: 72rem; }
+/* Les colonnes au contenu (DEC_00853, choix 2A d'Antoine, regle de la charte) : chaque colonne prend la largeur de son
+   contenu, 24 px entre deux colonnes ; la place qui reste va a la colonne « reste » du tableau (cc-rN), tronquee si
+   c'est un texte long (cc-tronque), sinon les boutons de droite la prennent. Pose par colonnesAuContenu (commun.js). */
+.gd.cc { table-layout: auto; }
+.gd.cc col { width: auto !important; }
+.gd.cc > thead > tr > *, .gd.cc > tbody > tr:not(.gd-b) > * { white-space: nowrap; width: 1%; padding-right: 12px; }
+.gd.cc > thead > tr > *:not(:first-child), .gd.cc > tbody > tr:not(.gd-b) > *:not(:first-child) { padding-left: 12px; }
+.gd.cc-r1 tr:not(.gd-b) > :nth-child(1), .gd.cc-r2 tr:not(.gd-b) > :nth-child(2), .gd.cc-r3 tr:not(.gd-b) > :nth-child(3),
+.gd.cc-r4 tr:not(.gd-b) > :nth-child(4), .gd.cc-r5 tr:not(.gd-b) > :nth-child(5), .gd.cc-r6 tr:not(.gd-b) > :nth-child(6),
+.gd.cc-r7 tr:not(.gd-b) > :nth-child(7) { width: auto; }
+.gd.cc-tronque.cc-r1 tbody tr:not(.gd-b) > :nth-child(1), .gd.cc-tronque.cc-r2 tbody tr:not(.gd-b) > :nth-child(2),
+.gd.cc-tronque.cc-r3 tbody tr:not(.gd-b) > :nth-child(3), .gd.cc-tronque.cc-r4 tbody tr:not(.gd-b) > :nth-child(4),
+.gd.cc-tronque.cc-r5 tbody tr:not(.gd-b) > :nth-child(5), .gd.cc-tronque.cc-r6 tbody tr:not(.gd-b) > :nth-child(6) { max-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* Tout se fige jusqu'a l'en-tete du tableau (Antoine, 2026-11-04 : « Tout figer jsuqu'a : Rapport Systemes Systeme
+   d'origine Etat Date ») : la tete de la page sous le bandeau, l'en-tete des colonnes sous elle (--tete, commun.js).
+   L'en-tete ne se fige que si le tableau tient dans la largeur : sinon sa carte defile de cote, et le navigateur
+   ne fige rien dans une zone qui defile. */
+.tete-fixe { position: sticky; top: var(--hb); z-index: 15; display: flex; flex-direction: column; gap: var(--s3); margin: calc(-1 * var(--s4)) calc(-1 * var(--s5)) 0; padding: var(--s4) var(--s5) var(--s3); background-color: var(--fond); }
+@media (min-width: 85rem) {
+  .gd-c { overflow-x: visible; }
+  .gd thead th { position: sticky; top: calc(var(--hb) + var(--tete, 0px)); z-index: 5; background-color: var(--surface); border-bottom: 0; box-shadow: inset 0 -1.5px 0 var(--bord); }
+}
+.gd th { overflow-wrap: anywhere; }
+.gd .c, .td-f { text-align: center; }
+.td-f { font-size: var(--t-petit); color: var(--marque); }
+/* le titre d'un groupe, a la forme exacte de ceux de l'onglet Automatisations, « Depuis Even 17 » (Antoine, 2026-11-04) */
+.gd-b th { background-color: transparent; color: var(--marque); font-size: var(--t-titre-carte); font-weight: 500; padding: var(--s3) var(--s1) var(--s1); border-bottom: 2px solid var(--trait); }
+.gd tbody + tbody .gd-b th { border-top: .6rem solid var(--surface); }
+.act { text-align: right; white-space: nowrap; }
+.gd-resume { white-space: nowrap; }
+.gd .gd-date { text-align: left; }   /* .la-d l'aligne a droite dans les automatisations ; ici, a gauche comme l'etat */
+.restreint td { color: var(--discret); }
+.restreint .cad { color: var(--rouge); }
+.restreint .td-f { color: var(--discret); }
+
+/* ------------------------------------------------------------ automatisations */
+.grp-c { margin-top: var(--s0); }
+/* le titre d'un groupe en bleu canard sur son filet, comme la page de pilotage (DEC_00520, option 1B) */
+.grp { font-size: var(--t-titre-carte); font-weight: 500; color: var(--marque); margin: 0 0 var(--s1); padding-bottom: var(--s1); border-bottom: 2px solid var(--trait); display: flex; align-items: center; gap: var(--s1); }
+.g-cpt { font: 400 var(--t-meta) var(--mono); background-color: var(--rail-on); color: var(--marque); border-radius: var(--r-pilule); padding: var(--s00) var(--s1); }
+.lb {
+  display: flex; align-items: center; gap: var(--s1); width: 100%; padding: var(--s1) var(--s0);
+  border: 0; border-top: 1px solid var(--filet); background-color: transparent;
+  color: inherit; font: inherit; text-align: left; cursor: pointer;
+}
+.lb.premier { border-top: 0; }
+.lb:hover { background-color: var(--survol); }
+.lb[aria-expanded="true"] { background-color: var(--rail-on); }
+.lb .ico { color: var(--discret); }
+.la { display: grid; grid-template-columns: 1rem 2rem minmax(0, 1fr) auto 10rem 11rem; gap: var(--s2); align-items: center; width: 100%; font-size: var(--t-corps); }
+/* la colonne d'action a gauche du nom (DEC_00835, 1A) ; chaque colonne a son contenu, 24 px entre deux, le dernier passage prend le reste (DEC_00853, 2A) */
+.la:not(.ag-la) { grid-template-columns: 1rem 3rem 1.8rem minmax(12rem, 20rem) auto 10rem minmax(0, 1fr); column-gap: var(--s4); }
+.la:not(.ag-la) .la-d { justify-self: end; }
+/* la colonne d'action, de la meme largeur dans Rapports et Automatisations : la fleche, le cadenas, ou rien (DEC_00835, 1A) */
+.rf-col { display: inline-flex; align-items: center; justify-content: center; width: 1.8rem; flex: none; }
+.rf-col .rf-b { margin: 0; }
+.la .rf-col { position: relative; z-index: 1; }   /* au-dessus du bouton qui couvre la ligne : la fleche ne l'ouvre pas (2026-11-11) */
+.gd tbody th[scope="row"] { position: relative; padding-left: var(--s6); }
+.gd tbody th[scope="row"] > .rf-col { position: absolute; left: .5rem; top: 50%; transform: translateY(-50%); }
+/* la ligne est un bloc : le bouton du nom la couvre entiere, le bouton Documentation passe au-dessus */
+div.lb { position: relative; }
+/* l'en-tete des colonnes d'Automatisations (DEC_00853, 1A) : la grille des lignes, la forme des en-tetes des tableaux */
+div.la-tete-l { cursor: default; border-top: 0; border-bottom: 1.5px solid var(--bord); }
+/* figee sous la tete de la page sur toute la liste (2026-11-11) : une bande blanche collee au premier groupe visible */
+.la-tete-w { position: sticky; top: calc(var(--hb) + var(--tete, 0px)); z-index: 5; margin-bottom: calc(-1 * var(--s3)); padding: var(--s1) var(--s3) 0; background-color: var(--surface); border-radius: var(--r-carte) var(--r-carte) 0 0; }
+.grp-c.sous-tete { border-top-left-radius: 0; border-top-right-radius: 0; padding-top: var(--s1); }
+div.la-tete-l:hover { background-color: transparent; }
+.la-tete > span { font-size: var(--t-meta); color: var(--discret); font-weight: 500; white-space: nowrap; }
+.la-tete .la-d { text-align: right; }
+.la-tete-ch { flex: none; width: 16px; }
+/* l'automatisation dont la fiche est ouverte, le temps de la fiche seulement (Antoine, 2026-11-10 et 2026-11-11) */
+div.lb.ouverte { background-color: var(--rail-on); box-shadow: inset 3px 0 0 var(--marque); }
+div.lb.ouverte .la-nom strong { font-weight: 500; }
+.lb-o { padding: 0; border: 0; background-color: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.lb-o::after { content: ""; position: absolute; inset: 0; }
+.lb-o:focus-visible { outline: none; }
+div.lb:has(.lb-o:focus-visible) { outline: 2px solid var(--marque); outline-offset: -2px; }
+.la-o { position: relative; z-index: 1; display: flex; align-items: center; gap: var(--s00); }   /* Documentation et la demande, sur la ligne */
+.la .doc-b, .gd .doc-b { position: relative; z-index: 1; margin: 0; padding: var(--s0) var(--s2); font-size: var(--t-meta); }   /* le meme bouton dans Rapports (2026-11-04) */
+.la-id { color: var(--discret); font-size: var(--t-meta); }
+.la-nom { display: flex; flex-direction: column; gap: var(--s00); line-height: 1.3; }
+.la-nom strong { font-weight: 400; font-size: var(--t-titre-carte); }
+.la-f { font-size: var(--t-meta); color: var(--marque); }
+/* les carres ont une colonne de largeur fixe : le bouton Documentation et les carres tombent au meme endroit sur chaque ligne (Antoine, 2026-10-23) */
+.la-h .discret { font-size: var(--t-meta); white-space: nowrap; }
+.la-d { font-size: var(--t-meta); color: var(--discret); text-align: right; white-space: nowrap; }
+.la-d.alerte, .fi-s .alerte { color: var(--rouge); font-weight: 500; }   /* une surveillance qui signale un rate (2026-10-09) */
+
+/* ------------------------------------------------------------ la fenetre de detail */
+/* Au centre de l'ecran, sur un voile ; tete claire, corps qui defile seul, pied de boutons ; 760 px
+   (Antoine, 2026-11-04, DEC_00520, option 4A ; elle remplace le panneau qui glissait de la droite). */
+.fen-voile { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: var(--s3); background-color: var(--voile); }
+.fen { display: flex; flex-direction: column; width: min(760px, 94vw); max-height: 86vh; background-color: var(--surface); border: 1.5px solid var(--bord); border-radius: var(--r-carte); box-shadow: var(--ombre-fen); overflow: hidden; }
+.fen-t { flex: none; display: flex; align-items: center; gap: var(--s2); padding: var(--s3) var(--s4); background-color: var(--surface2); border-bottom: 1.5px solid var(--bord); }
+.fen-tt { flex: 1; min-width: 0; }
+.fen-tt h2, .fen-tt .r-titre, .fen-tt .fi-nom { margin: 0; font-size: var(--t-titre-carte); line-height: 1.35; }
+.fen-x { flex: none; display: inline-flex; align-items: center; justify-content: center; width: var(--h-pastille); height: var(--h-pastille); padding: 0; font: inherit; font-size: var(--t-chiffre); line-height: 1; background-color: transparent; border: 0; border-radius: var(--r-rond); cursor: pointer; color: var(--discret); }   /* la croix ronde, a la police de la page (DEC_00933, section 5) */
+.fen-x:hover { color: var(--encre); background-color: var(--survol); }
+.fen-c { flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: var(--s3) var(--s4); }
+.fen-p { flex: none; display: flex; justify-content: flex-end; align-items: center; gap: var(--s1); padding: var(--s2) var(--s4); border-top: 1.5px solid var(--bord); }
+.fen-p .r-act { margin: 0; }
+body.fen-ouverte { overflow: hidden; }
+.r-sur { font-size: var(--t-meta); font-weight: 500; color: var(--discret); margin-bottom: var(--s1); }
+.r-titre { font-size: var(--t-titre-page); margin: var(--s0) 0 var(--s2); }
+.r-act { display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; margin-bottom: var(--s3); font-size: var(--t-petit); }
+.r-cadre { display: block; width: 100%; height: 58vh; border: 0; background-color: var(--surface); }
+
+.fi-st { display: inline-flex; align-items: center; gap: var(--s1); font-size: var(--t-corps); font-weight: 500; color: var(--discret); margin: 0 0 var(--s0); }   /* sans fond (8C) */
+.fi-st.ok { color: var(--vert); }
+.fi-st.panne { color: var(--rouge); }
+.fi-nom { font-size: var(--t-titre-page); margin: var(--s1) 0 var(--s00); }
+.fi-flux { margin: 0 0 var(--s3); color: var(--marque); }
+.fi-flux .mono { color: var(--discret); font-size: var(--t-meta); margin-left: var(--s1); }
+.fi-s { border-top: 1px solid var(--bord); padding: var(--s3) 0; }
+.fi-s h3 { margin: 0 0 var(--s1); font-size: var(--t-meta); color: var(--discret); font-weight: 500; }   /* casse normale (1B) */
+.fi-box { margin-top: var(--s1); padding: var(--s1) var(--s2); background-color: var(--fond); border-radius: var(--r-bouton); font-size: var(--t-meta); line-height: 1.5; overflow-wrap: anywhere; }
+.fi-r { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s1); }
+.fi-r li { display: flex; justify-content: space-between; gap: var(--s3); align-items: center; font-size: var(--t-corps); }
+
+/* ------------------------------------------------------------ parametres */
+.pa thead th { padding-top: var(--s1); }
+.pa th:first-child { width: 36%; }
+.pa .c { text-align: center; }
+.pa input[type="checkbox"] { accent-color: var(--marque); }
+input[type="checkbox"], input[type="radio"] { font: inherit; }   /* jamais la police ni la taille du navigateur (releve des typographies de PCP056, 2026-11-13) */
+.pa td.c input { width: 1.05rem; height: 1.05rem; }
+.sw { position: relative; display: inline-block; width: 2.6rem; height: 1.45rem; vertical-align: middle; }
+.sw input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.sw-r { position: absolute; inset: 0; border-radius: var(--r-pilule); background-color: var(--bord-champ); transition: background-color .15s; pointer-events: none; }
+.sw-r::after { content: ""; position: absolute; top: 3px; left: 3px; width: calc(1.45rem - 6px); height: calc(1.45rem - 6px); border-radius: var(--r-rond); background-color: var(--surface); transition: transform .15s; }
+.sw input:checked + .sw-r { background-color: var(--marque); }
+.sw input:checked + .sw-r::after { transform: translateX(1.15rem); }
+.sw input:focus-visible + .sw-r { outline: 3px solid var(--marque); outline-offset: 2px; }
+.ferme-p { display: inline-flex; align-items: center; gap: var(--s0); font-size: var(--t-meta); color: var(--discret); }
+.enr { display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
+.enr-m { color: var(--vert); font-size: var(--t-corps); }
+.enr-m.erreur { color: var(--rouge); }
+
+/* ------------------------------------------------------------ aide */
+.aide { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: var(--s3); align-items: start; max-width: 62rem; }
+.aide-som { position: sticky; top: calc(var(--hb) + 1rem); display: flex; flex-direction: column; gap: var(--s00); padding: var(--s1); }
+.aide-som a { padding: var(--s1) var(--s1); border-radius: var(--r-bouton); text-decoration: none; color: var(--encre2); font-size: var(--t-corps); }
+.aide-som a:hover { background-color: var(--survol); }
+.aide-c { display: flex; flex-direction: column; gap: var(--s3); }
+.aide-c h2 { font-size: var(--t-titre-section); margin: 0 0 var(--s1); }
+.aide-c h3 { font-size: var(--t-corps); margin: var(--s3) 0 var(--s1); color: var(--marque); }
+.aide-c p { margin: var(--s0) 0; max-width: 65ch; }
+.aide-c ol { margin: 0; padding-left: var(--s3); line-height: 1.8; }
+.aide-dl { display: grid; grid-template-columns: 11rem 1fr; gap: var(--s1) var(--s3); margin: 0; align-items: baseline; }
+.aide-dl dt { display: flex; align-items: center; gap: var(--s1); font-weight: 500; }
+.aide-dl dd { margin: 0; }
+.aide-c section { scroll-margin-top: calc(var(--hb) + 1rem); }
+
+/* ------------------------------------------------------------ agents (maquette v16, 2026-10-06) */
+.ag-k { display: flex; align-items: center; gap: var(--s1); padding: var(--s2) var(--s3); }
+.o-l { display: flex; flex-wrap: wrap; gap: var(--s0); }
+.o-p { display: inline-flex; align-items: center; gap: var(--s0); padding: var(--s00) var(--s1); border: 1px solid var(--bord); border-radius: var(--r-pilule); font-size: var(--t-meta); white-space: nowrap; background-color: var(--surface); }
+.jauge { display: inline-flex; gap: 2px; vertical-align: middle; }
+.jauge span { width: 5px; height: 12px; border-radius: var(--r-petit); background-color: var(--surface2); }
+.jauge span.on { background-color: var(--marque); }
+.ag-la { grid-template-columns: 1rem 2rem minmax(0, 1fr) auto 12rem; }
+.ag-a { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--s1); }
+.ag-a li { display: flex; flex-direction: column; }
+.frise { list-style: none; margin: var(--s1) 0 0; padding: 0; display: flex; gap: var(--s0); font-size: var(--t-meta); color: var(--discret); }
+.frise li { flex: 1; border-top: 3px solid var(--surface2); padding-top: var(--s0); }
+.frise li.fait { border-top-color: var(--marque); color: var(--marque); font-weight: 500; }
+
+
+/* ------------------------------------------------------------ connexion */
+.vue-connexion { flex: 1; display: flex; flex-direction: column; }
+.c1 { flex: 1; display: grid; place-items: center; padding: var(--s5) var(--s3); }
+.carte-c { width: min(28rem, 100%); background-color: var(--surface); border: 1.5px solid transparent; border-radius: var(--r-carte); padding: var(--s5); }
+.etapes { list-style: none; margin: 0 0 var(--s4); padding: 0; display: flex; gap: var(--s4); font-size: var(--t-corps); color: var(--discret); }
+.etapes li { display: flex; align-items: center; gap: var(--s1); }
+.etapes span { display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: var(--r-rond); border: 1.5px solid currentColor; font-weight: 500; font-size: var(--t-meta); }
+.etapes li.on { color: var(--marque); font-weight: 500; }
+.etapes li.on span { background-color: var(--marque); border-color: var(--marque); color: var(--surface); }
+.carte-c form { display: flex; flex-direction: column; gap: var(--s2); }
+.carte-c label { font-weight: 500; font-size: var(--t-corps); }
+.champ { font: inherit; height: var(--h-controle); box-sizing: border-box; padding: 0 var(--s2); border: 1px solid var(--bord-champ); border-radius: var(--r-bouton); background-color: var(--surface); color: var(--encre); }
+.champ:focus, .case-c:focus { outline: none; border-color: var(--encre2); }
+.btn.plein { border-radius: var(--r-bouton); }   /* une seule hauteur de bouton, sauf la connexion depuis le 2026-11-17 (DEC_00933, 3C ; DEC_01148) */
+/* RGI_01874 : la variante « grands controles » de la charte, sur la seule page de connexion, seule a l'ecran (choix A
+   d'Antoine a PCP049-1117-ae, DEC_01148) : le champ et le bouton de la page d'avant le 2026-11-13 apres-midi (46 px de
+   haut, texte du bouton en 15 px), les libelles et l'etape en cours en gras */
+.carte-c label, .carte-c .etapes li.on { font-weight: 600; }
+.carte-c .champ { height: auto; padding: var(--s2) var(--s3); border-width: 1.5px; font-size: 15px; }
+.carte-c .btn.plein { height: auto; padding: var(--s2) var(--s3); font-size: 15px; }
+.lien { font: inherit; font-size: var(--t-corps); background-color: transparent; border: 0; color: var(--marque); text-decoration: underline; cursor: pointer; align-self: flex-start; padding: 0; }
+.envoye { margin: 0 0 var(--s1); font-size: var(--t-corps); overflow-wrap: anywhere; }
+.cases { display: flex; gap: var(--s1); }
+.case-c { width: 3rem; min-width: 0; height: 3.4rem; text-align: center; font: 500 var(--t-titre-page) var(--mono); border: 1.5px solid transparent; border-radius: var(--r-bouton); background-color: var(--surface); color: var(--encre); }
+.petit { font-size: var(--t-meta); color: var(--discret); }
+.message { min-height: 1.2rem; margin-top: var(--s2); font-size: var(--t-corps); color: var(--marque); }
+.message.erreur { color: var(--rouge); }
+.pc { text-align: center; font-size: var(--t-meta); color: var(--discret); margin: var(--s3) 0; padding: 0 var(--s3); }
+
+/* ------------------------------------------------------------ ecrans etroits */
+@media (max-width: 80rem) {
+  .la { grid-template-columns: 1rem 2rem minmax(0, 1fr) auto 9.5rem; }
+  .la:not(.ag-la) { grid-template-columns: 1rem 3rem 1.8rem minmax(10rem, 16rem) auto 10rem minmax(0, 1fr); }
+}
+@media (max-width: 60rem) {
+  .appli { grid-template-columns: 1fr; background-image: none; }
+  .rail { position: static; height: auto; flex-direction: row; justify-content: space-between; padding: var(--s1); border-bottom: 1px solid var(--bord); overflow-x: auto; }
+  .rail nav, .m-bas { flex-direction: row; margin-top: 0; }
+  .rail a, .rail button { width: auto; }
+  .contenu { padding: var(--s3) var(--s3) var(--s5); }
+  .la { grid-template-columns: 1rem 2rem minmax(0, 1fr); }
+  .la:not(.ag-la) { grid-template-columns: 1rem 3rem 1.8rem minmax(0, 1fr) auto; column-gap: var(--s2); }
+  .la-h, .la-d, .ag-la .o-l { display: none; }
+  .aide { grid-template-columns: 1fr; }
+  .aide-som { position: static; flex-direction: row; flex-wrap: wrap; }
+  .ke-d { border-left: 0; padding-left: 0; }
+}
+@media (max-width: 40rem) {
+  input, select, textarea { font-size: var(--champ-tel); }   /* 16 px dans tout champ sur telephone (DEC_00850 de PCP056) */
+  .b-in { gap: var(--s1); padding: 0 var(--s3); }
+  .b-op, .b-barre, .b-m { display: none; }
+  .aide-dl { grid-template-columns: 1fr; }
+  .bas-in { padding: var(--s3); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+/* ------------------------------------------------------------ la documentation d'une automatisation */
+/* Une fenetre au centre, quatre pieces a telecharger, un bandeau vert ou orange (Antoine, 2026-10-22, option B). */
+.doc-b { background-color: var(--surface); color: var(--encre); border: 1.5px solid transparent; margin: var(--s0) 0 var(--s3); }
+.doc-b.eteint { background-color: var(--surface2); color: var(--pale); border-color: var(--surface2); }
+.doc-voile { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: var(--s3); background-color: var(--voile); }
+.doc-fen { position: relative; width: 480px; max-width: 100%; padding: 0 var(--s4) var(--s4); background-color: var(--surface); border: 1.5px solid var(--bord); border-radius: var(--r-carte); box-shadow: var(--ombre-fen); overflow: hidden; }
+/* la tete claire de la fenetre de detail (DEC_00520, option 4A) */
+.doc-fen > h2 { margin: 0 calc(-1 * var(--s4)) var(--s3); padding: var(--s3) var(--s6) var(--s3) var(--s4); font-size: var(--t-titre-carte); background-color: var(--surface2); border-bottom: 1.5px solid var(--bord); }
+.doc-x { position: absolute; top: var(--s2); right: var(--s3); display: inline-flex; align-items: center; justify-content: center; width: var(--h-pastille); height: var(--h-pastille); padding: 0; font: inherit; font-size: var(--t-chiffre); line-height: 1; background-color: transparent; border: 0; border-radius: var(--r-rond); cursor: pointer; color: var(--discret); }
+.doc-x:hover { background-color: var(--survol); }
+.doc-bandeau { margin: 0; padding: var(--s1) var(--s2); font-size: var(--t-petit); line-height: 1.6; border-left: 4px solid var(--pale); border-radius: 0 var(--r-bouton) var(--r-bouton) 0; background-color: var(--filet); }
+.doc-bandeau.vert { border-left-color: var(--vert); background-color: var(--vert-f); }
+.doc-bandeau.orange { border-left-color: var(--ambre); background-color: var(--ambre-f); }
+.doc-l { list-style: none; margin: var(--s3) 0 0; padding: 0; }
+.doc-l li { display: flex; justify-content: space-between; align-items: center; gap: var(--s3); padding: var(--s2) 0; border-top: 1px solid var(--filet); }
+.doc-l .f { color: var(--discret); font-size: var(--t-meta); }
+.doc-l .absent { color: var(--discret); font-size: var(--t-petit); }
+/* l'onglet Cartographie (DEC_00181, 2026-10-31) : une carte, un bouton qui ouvre la carte dans un nouvel onglet */
+.ca { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s1); padding: var(--s4) var(--s4); max-width: 40rem; }
+.ca .ca-t { margin: 0; font-weight: 500; font-size: var(--t-titre-carte); }
+.ca .discret { margin: 0 0 var(--s1); }
+.ca-b { display: inline-flex; align-items: center; gap: var(--s1); text-decoration: none; }
+.ca-g { display: flex; flex-wrap: wrap; gap: var(--s1); }
+/* la fenetre « Faire une demande » (DEC_00165, 2026-10-31) : celle de la documentation, avec un formulaire */
+.dm-sur { margin: 0 0 var(--s3); color: var(--discret); font-size: var(--t-corps); }
+.dm-n { display: flex; flex-wrap: wrap; gap: var(--s1); margin-bottom: var(--s2); }
+.dm-n label { display: inline-flex; align-items: center; gap: var(--s0); height: var(--h-pastille); box-sizing: border-box; padding: 0 var(--s2); border: 1.5px solid var(--bord); border-radius: var(--r-pilule); font-size: var(--t-petit); cursor: pointer; }
+/* le choix fait, plein, comme la page de pilotage (DEC_00520, option 9B) */
+.dm-n label:has(input:checked) { border-color: var(--marque); background-color: var(--marque); color: var(--surface); font-weight: 500; }
+.dm-n label:has(input:focus-visible) { outline: 3px solid var(--marque); outline-offset: 2px; }
+.dm-lab { display: block; margin: 0 0 var(--s0); font-size: var(--t-meta); font-weight: 500; color: var(--discret); }
+.dm-n input { margin: 0; accent-color: var(--marque); }
+.dm-t { display: block; width: 100%; box-sizing: border-box; padding: var(--s1) var(--s2); border: 1.5px solid var(--bord); border-radius: var(--r-bouton); background-color: var(--surface2); font: inherit; font-size: var(--t-corps); resize: vertical; }   /* la zone de texte de la charte, fond gris et trait de 1,5 px, partout (DEC_00955) */
+.dm-t:focus, .rt-sur select:focus { outline: none; border-color: var(--encre2); }
+/* la fenetre « Nouveau retour », plus grande (depot d'Antoine du 2026-11-12 : « la fenetre popup est toute petite »), et ses pieces */
+.doc-fen.dm { width: 760px; max-height: calc(100vh - 2 * var(--s3)); overflow-y: auto; }
+.dm .dm-t { min-height: 14rem; }
+.dm select { width: 100%; min-width: 0; }
+.dm .rt-sur { grid-template-columns: minmax(0, 1fr); }
+.dm-pj { margin-top: var(--s2); }
+.dm-pj-l { list-style: none; margin: var(--s1) 0 0; padding: 0; font-size: var(--t-petit); }
+.dm-pj-l li { display: flex; align-items: center; gap: var(--s1); padding: var(--s00) 0; }
+.dm-pj-a { margin: var(--s0) 0 0; font-size: var(--t-petit); color: var(--discret); }
+.dm-pied { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); margin-top: var(--s2); }
+.dm-pied .message { margin: 0; }
+.dm-ok { margin: var(--s1) 0 var(--s0); padding: var(--s2) var(--s2); border-left: 4px solid var(--vert); border-radius: 0 var(--r-bouton) var(--r-bouton) 0; background-color: var(--vert-f); font-size: var(--t-corps); }
+.dm-f { display: inline-flex; align-items: center; gap: var(--s1); }
+.dm-b { font: inherit; display: inline-flex; align-items: center; justify-content: center; width: var(--h-controle); height: var(--h-controle); box-sizing: border-box; margin-left: var(--s1); padding: 0; vertical-align: middle; background-color: transparent; border: 0; border-radius: var(--r-petit); color: var(--discret); cursor: pointer; }
+.dm-b:hover, .dm-b:focus-visible { color: var(--marque); background-color: var(--survol); }
+.dm-g { white-space: nowrap; }
+.dm-b.rf-b { margin-left: var(--s0); }
+.rf-e .rf-v { font-size: inherit; }
+.dm-b[aria-disabled="true"] { cursor: progress; }
+.dm-b[aria-disabled="true"] .ico { animation: dm-tourne 1s linear infinite; }   /* occupe : la fleche tourne (section 5, « jamais grisé ») */
+@keyframes dm-tourne { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .dm-b[aria-disabled="true"] .ico { animation: none; } }
+.rf-e { display: block; margin-top: var(--s00); font-family: var(--texte); color: var(--ambre); white-space: normal; }
+.rf-e.rf-k { color: var(--rouge); }
+
+/* L'onglet « Retours » (DEC_00506) : le tableau, la barre de la page Rapports, le panneau de detail.
+   Quand il existe, il remplace les bulles « Faire une demande » des Rapports et des Automatisations. */
+.avec-retours .dm-b:not(.rf-b), .avec-retours .fi-s:has(.dm-f) { display: none; }   /* le bouton Rafraichir reste (PCP049-1110-p) */
+.rt-outils { width: 100%; }
+.rt-sp { flex: 1; }
+.rt-l { cursor: pointer; }
+.rt-l:hover, .rt-l:focus-visible { background-color: var(--survol); }
+.rt-l:focus-visible { outline: 2px solid var(--marque); outline-offset: -2px; }
+
+.rt-tete { display: flex; gap: var(--s1); margin: var(--s0) 0 var(--s3); }
+.rt-dl { display: grid; grid-template-columns: max-content 1fr; gap: var(--s0) var(--s3); margin: 0 0 var(--s3); font-size: var(--t-corps); }
+.rt-dl dt { color: var(--discret); }
+.rt-dl dd { margin: 0; }
+.rt-h { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--s1); font-size: var(--t-corps); }
+.rt-h .mono { color: var(--discret); margin-right: var(--s1); }
+.rt-sur { display: grid; gap: var(--s0); margin-bottom: var(--s2); font-size: var(--t-meta); font-weight: 500; color: var(--discret); }
+.rt-sur select { font: inherit; font-size: var(--t-corps); font-weight: 400; height: var(--h-controle); box-sizing: border-box; padding: 0 var(--s1); border: 1px solid var(--bord-champ); border-radius: var(--r-bouton); background-color: var(--surface); color: var(--encre); }
+/* La fenetre d'un email de l'onglet « Emails » (Antoine, 2026-11-11) : la moitie de l'ecran, les champs en tete comme le
+   brouillon de la page de pilotage (une ligne par champ, les adresses a la suite), puis le message. */
+.fen-voile.fen-mail .fen { width: min(max(50vw, 640px), 96vw); height: 82vh; max-height: 82vh; }
+.fen-mail .fen-c { display: flex; flex-direction: column; gap: var(--s3); }
+.ml-t { display: grid; grid-template-columns: max-content 1fr; gap: var(--s1) var(--s3); margin: 0; padding-bottom: var(--s3); border-bottom: 1px solid var(--filet); font-size: var(--t-corps); }
+.ml-t dt { color: var(--discret); }
+.ml-t dd { margin: 0; overflow-wrap: anywhere; }
+.ml-e { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s3); margin: 0; font-size: var(--t-petit); color: var(--discret); }
+.ml-e .ml-r { color: var(--rouge); }
+.ml-c { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.ml-cadre { flex: 1 1 auto; width: 100%; min-height: 50vh; border: 1px solid var(--filet); border-radius: var(--r-petit); background-color: var(--surface); }
+.ml-texte { white-space: pre-line; line-height: 1.55; font-size: var(--t-corps); }
+.ml-n { margin: var(--s2) 0 0; font-size: var(--t-meta); color: var(--discret); }
+
+/* ------------------------------------------------------------ la peau facon Tesla (DEC_00755) */
+/* Ecrite apres le reste, elle l'emporte : moins de gras, les chiffres en police du texte a chasse egale, des rayons de 12 px.
+   Les valeurs de Tesla viennent de reconstitutions publiques de tesla.com, lues le 2026-11-10 (planche v2). */
+body { letter-spacing: .005em; }
+h1 { font-weight: 500; font-size: var(--t-chiffre); letter-spacing: -.01em; }
+strong, b { font-weight: 500; }   /* l'accent d'un client : 500, jamais 700 (3A, DEC_00953 de PCP056) */
+h2, h3, .ke-titre, .b-t2, .p-h, thead th { font-weight: 500; }
+.carte, .ke { border-radius: var(--r-carte); }
+.btn, .gb-o[aria-pressed="true"], .pe-b[aria-pressed="true"], .tag, .rail a[aria-current="page"], .avatar { font-weight: 500; }
+.btn.btn-s { border-color: var(--bord-champ); }
+.mono, .gd-date, .case, .ke-anneau span, .ke-d strong, .g-cpt { font-family: var(--texte); font-variant-numeric: tabular-nums; }
+.ke-anneau strong { font-weight: 500; font-size: var(--t-chiffre); }
+.ke-d strong { font-weight: 500; font-size: var(--t-titre-page); }
+.case { font-weight: 500; background-color: var(--fond); }
+.bas { border-top-color: var(--bord); }
+.champ, .case-c, .doc-b { border-color: var(--bord-champ); }   /* un champ a remplir garde son contour, meme sans contour de carte */
+
+/* la fiche d'un passage, en recit (DEC_00835, 4C) */
+.fen-tt .jx-titre { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--s3); }
+.jx-ref { font-size: var(--t-corps); font-weight: 400; color: var(--encre2); }
+.jx-depuis { margin: 0 0 var(--s1); color: var(--encre2); }
+.jx-b { border-top: 1px solid var(--bord); padding: var(--s3) 0; }
+.jx-b.jx-premier { border-top: 0; padding-top: 0; }
+.jx-b h3 { margin: 0 0 var(--s1); font-size: var(--t-titre-carte); color: var(--encre); font-weight: 500; }
+.jx-ch { list-style: none; margin: 0 0 0 var(--s1); padding: 0; border-left: 2px solid var(--bord); }
+.jx-ch li { position: relative; padding: var(--s00) 0 var(--s2) var(--s3); }
+.jx-ch li::before { content: ""; position: absolute; left: -.42rem; top: .45rem; width: .7rem; height: .7rem; border-radius: var(--r-rond); background-color: var(--c); }
+.jx-q { font-weight: 500; } .jx-m { color: var(--encre2); }
+.jx-dl { display: grid; grid-template-columns: 11rem 1fr; gap: var(--s1) var(--s3); margin: 0; font-size: var(--t-corps); }
+.jx-dl dt { color: var(--encre2); font-weight: 500; } .jx-dl dd { margin: 0; color: var(--encre); }
+
+/* les listes standardisees : trois roles, trois tailles (Antoine, 2026-11-11, DEC_00835, choix 5A). Le nom de la chose en
+   14 px noir ; le texte (description, objet, destinataires) en 14 px gris fonce ; les donnees courtes (numero, date,
+   heure, duree) en 13 px gris fonce, chiffres alignes ; la ligne sous le nom (le flux) en 12 px. */
+.la-nom strong, main table tbody th[scope="row"], main table tbody th[scope="row"] strong { font-size: var(--t-corps); font-weight: 400; color: var(--encre); }
+.la-f, .td-f { font-size: var(--t-meta); font-weight: 400; }
+.la-id, .la-d, .gd-date, main table td.mono { font-size: var(--t-petit); color: var(--encre2); font-variant-numeric: tabular-nums; }
+main table td, main table td.discret { color: var(--encre2); }
+main table td.rt-o { color: var(--encre); }
+main table td.rt-o .mono { font-size: var(--t-petit); color: var(--discret); }
+
+/* Les agents d'IA (DEC_00892, 2026-11-12) : l'onglet en 1A, l'accueil en miroir 2A ; les variables de la charte seulement */
+/* commun aux options : la jauge du banc, la garde, la suite ; les variables de la charte seulement */
+.agb { display: inline-block; width: 4.5rem; height: .4rem; border-radius: var(--r-pilule); background-color: var(--surface2); overflow: hidden; vertical-align: middle; }
+.agb > span { display: block; height: 100%; width: calc(var(--p, 0) * 1%); background-color: var(--vert); border-radius: var(--r-pilule); }
+.ag-bl { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; margin-bottom: var(--s0); }
+.ag-bl strong { font-weight: 500; font-size: var(--t-titre-carte); }
+.ag-garde { display: flex; align-items: flex-start; gap: var(--s1); color: var(--encre2); }
+.ag-garde .cad { margin: .15rem 0 0; }
+.ag-suite { margin-top: var(--s1); }
+.fi-s .o-l .o-p { text-decoration: none; color: var(--encre); }
+.fi-s .rt-dl { margin: 0; }
+/* 1A : la grille des lignes d'Automatisations, ses colonnes au contenu */
+.ag1 { display: grid; grid-template-columns: 1rem 2.2rem minmax(12rem, 17rem) minmax(0, 1fr) 6rem 9.5rem 14rem; column-gap: var(--s4); align-items: center; width: 100%; font-size: var(--t-corps); }
+.ag1-r { color: var(--encre2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ag1-b { display: inline-flex; align-items: center; gap: var(--s1); white-space: nowrap; }
+.ag1-b .mono { font-size: var(--t-petit); color: var(--encre2); min-width: 3.6rem; }
+.ag1-g { display: flex; align-items: center; gap: var(--s0); font-size: var(--t-petit); color: var(--encre2); }
+.ag1-g .cad { margin: 0; }
+.ag1 .tag { white-space: nowrap; }
+.ag1-corps { display: flex; flex-direction: column; gap: var(--s3); }
+.ag1-corps .lb { padding: var(--s2) var(--s0); }
+@media (max-width: 60rem) {
+  .ag1 { grid-template-columns: 1rem 2.2rem minmax(0, 1fr) auto; }
+  .ag1-r, .ag1-b, .ag1-g, .ag1-corps .la-tete-w { display: none; }
+}
+/* 2A : deux cartes jumelles, meme hauteur, meme anneau */
+.ag-anneau { --s: 0; --r: 0; --e: 0; background-image: conic-gradient(var(--vert) calc(var(--s, 0) * 1%), var(--marque) 0 calc(var(--r, 0) * 1%), var(--trait) 0 calc(var(--e, 0) * 1%), var(--rail-on) 0); }
+.ag-anneau strong { color: var(--marque); }
+.ac-deux { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
+a.ac-j { color: var(--encre); text-decoration: none; flex-wrap: nowrap; }
+a.ac-j:hover { border-color: var(--marque); }
+.ac-sur { font-size: var(--t-meta); color: var(--marque); font-weight: 500; letter-spacing: .04em; margin-bottom: var(--s00); }
+@media (max-width: 40rem) { .ac-deux { grid-template-columns: 1fr; } }
+.case.ag-case { color: var(--encre2); }
+
+/* La carte des flux de l'accueil (DEC_00981, RGI_01823 ; Antoine, 2026-11-14, PCP049-1114-a : « je veux exactement cette
+   version ») : chaque systeme une fois, chaque liaison une fois, aux couleurs des points ; un trait plein est un flux,
+   un pointille un controle de coherence. Les jetons de la charte seulement. */
+.cf .cf-sous { margin: -.2rem 0 .6rem; font-size: 13px; color: var(--discret); }
+.cf .cf-corps { display: grid; grid-template-columns: minmax(0, 1fr) 17rem; gap: 1rem; align-items: stretch; }
+.cf svg { width: 100%; max-width: 1000px; height: auto; display: block; margin: 0 auto; }
+.cf .cf-e { fill: none; stroke-linecap: round; transition: opacity .15s; }
+.cf .cf-e.ctl { stroke-dasharray: 2 5; }
+.cf .cf-z { fill: none; stroke: transparent; stroke-width: 14; cursor: pointer; }
+.cf .cf-n { cursor: pointer; transition: opacity .15s; }
+.cf .cf-n rect { fill: var(--surface); stroke-width: 1.6; }
+.cf .cf-n:hover rect, .cf .cf-n:focus rect { fill: var(--survol); }
+.cf .cf-n text { font-size: 13px; font-weight: 500; fill: var(--encre); }
+.cf .cf-n text.g { font-size: 15px; }
+.cf svg.focus .cf-e:not(.on), .cf svg.focus .cf-n:not(.on) { opacity: .15; }
+.cf .cf-d { border-left: 1px solid var(--filet); padding-left: 1rem; min-height: 8rem; display: flex; flex-direction: column; }
+.cf .cf-aide { font-size: 13px; color: var(--discret); margin: 0; }
+.cf .cf-dt { font-weight: 500; margin: 0 0 .4rem; }
+.cf .cf-dl { list-style: none; margin: 0; padding: 0; flex: 1 1 0; min-height: 0; overflow: auto; }
+@media (max-width: 900px) { .cf .cf-corps { grid-template-columns: 1fr; } .cf .cf-dl { flex: none; max-height: 18rem; } }
+.cf .cf-dl a { display: grid; grid-template-columns: auto auto 1fr; gap: .1rem .45rem; align-items: center; padding: .3rem 0;
+  color: var(--encre); text-decoration: none; border-top: 1px solid var(--filet); font-size: 13px; }
+.cf .cf-dl a:hover { background: var(--survol); }
+.cf .cf-num { color: var(--discret); font-variant-numeric: tabular-nums; }
+.cf .cf-fl { grid-column: 3; font-size: 12px; color: var(--marque); }
+.cf .cf-lg { display: inline-flex; align-items: center; gap: .3rem; }
+.cf .cf-tr { display: inline-block; width: 18px; border-top: 2px solid var(--discret); }
+.cf .cf-tr.ctl { border-top-style: dotted; }
