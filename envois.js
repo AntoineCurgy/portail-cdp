@@ -1,6 +1,7 @@
 // L'onglet « Emails » (ex « Courriels envoyes », renomme par Antoine le 2026-11-11 : « j'aime pas le mot courriel […]
 // juste l'appeler email ») (DEC_00598, DEC_00600 de PCP049) : tous les emails automatiques envoyes aux
-// equipes du client, lus dans le registre des envois (OUT_00399) par /api/envois, pour l'administrateur seul. La forme
+// equipes du client, lus dans le registre des envois (OUT_00399) par /api/envois : tous pour l'administrateur, et pour chaque autre utilisateur ceux qui lui sont
+// adresses (RGI_01900, DEC_01205). La forme
 // est la maquette A choisie par Antoine le 2026-11-06 (DEC_00606) : un tableau groupe par jour, la barre segmentee et
 // la recherche des autres onglets, le detail dans la fenetre centree du portail ; aucune phrase sous le titre.
 "use strict";
@@ -207,8 +208,8 @@ function ouvrirEnvoi(e, depuis) {
 
 demarrer(async () => {
   if (!moi.onglet_envois) {
-    poser([el("h1", null, "Emails"), vueVide("Onglet réservé",
-      "Cet onglet est réservé à l'administrateur du portail.")], true);
+    poser([el("h1", null, "Emails"), vueVide("Aucun email",
+      "Aucun email n'est encore suivi pour ce portail.")], true);
     return;
   }
   await suivre([SOURCE_ENVOIS], (d, premier) => poser(vueEnvois(d[0]), premier));
