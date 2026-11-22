@@ -909,8 +909,9 @@ function boutonArrete(cible, nom, chemin, date, avis, relire) {
 
 // 2A et 3B d'Antoine (PCP049-1122-e) : la fenetre courte (le nom du rapport, la date, le delai, « Recevoir par
 // email ») ; apres le clic, elle confirme d'une coche verte et d'une phrase, et se ferme par « Fermer ».
-// mesure de PCP001 du 2026-11-22 (NTE_16654) : 1 min 30 pour le rapprochement bancaire, 13 min pour le cadrage de la dette
-const DELAI_RECALCUL = "Délai de traitement : entre 1 et 15 minutes.";
+// mesures de PCP001 du 2026-11-22 : 1 min 30 pour le rapprochement bancaire ; pour le cadrage de la dette, 13 min, puis
+// 4 min 30 a 17h23 apres la correction des reprises de Finance Active (une mesure ; la charge du matin non mesuree)
+const DELAI_RECALCUL = "Délai de traitement : entre 1 et 10 minutes.";
 
 function ouvrirArreteEmail(cible, nom, chemin, date, avis, relire, depuis) {
   fermerDemande();
