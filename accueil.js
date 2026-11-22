@@ -85,6 +85,10 @@ function caseAgent(a) {
 const SVG_NS = "http://www.w3.org/2000/svg";
 const CF_L = 960, CF_H = 420;
 const CF_COUL = { ok: "var(--vert)", panne: "var(--rouge)", construction: "var(--pale)" };
+// le reglage du client, pose a la publication depuis sa fiche (cle « carte_flux ») : les systemes que la carte ne montre
+// pas, et celui qu'elle met au centre (Antoine, 2026-11-22, pour CDP : Outlook et Google Sheets masques, Yardi au centre)
+const CARTE_FLUX = {"masquer": ["Outlook", "Google Sheets"], "centre": "Yardi"};
+const CF_MASQUES = new Set(CARTE_FLUX.masquer || []);
 
 function sv(tag, attrs, parent) {
   const e = document.createElementNS(SVG_NS, tag);
@@ -98,13 +102,15 @@ function sv(tag, attrs, parent) {
 function grapheFlux(autosD) {
   const noeuds = new Map(), liens = new Map(), globaux = [];
   const noeud = (s) => { if (!noeuds.has(s)) noeuds.set(s, { nom: s, autos: [], voisins: new Set() }); return noeuds.get(s); };
-  for (const s of autosD.systemes || []) noeud(s);
+  for (const s of autosD.systemes || []) if (!CF_MASQUES.has(s)) noeud(s);
   for (const a of autosD.automatisations) {
     const f = a.flux || "";
     if (f.toLowerCase().startsWith("tous")) { globaux.push(a); continue; }
-    const sys = Array.isArray(a.systemes) ? a.systemes : [];
+    // un systeme masque n'a ni boite ni liaison ; l'automatisation reste sur ses autres systemes
+    const tousSys = Array.isArray(a.systemes) ? a.systemes : [];
+    const sys = tousSys.filter((s) => !CF_MASQUES.has(s));
     sys.forEach((s) => noeud(s).autos.push(a));
-    if (sys.length < 2) continue;
+    if (sys.length < 2 || sys.length < tousSys.length) continue;
     const [x, y] = sys;
     const cle = [x, y].sort().join("|");
     if (!liens.has(cle)) liens.set(cle, { a: x, b: y, autos: [], dirige: new Set(), controle: false });
@@ -139,9 +145,10 @@ function cfOrdre(noeuds) {
   return ordre;
 }
 
-// la pieuvre : le systeme le plus relie au centre, les autres en couronne ; ses bras droits, les autres courbes
+// la pieuvre : au centre le systeme que la fiche du client nomme, sinon le plus relie ; les autres en couronne ; ses bras droits, les autres courbes
 function cfPlacer(g) {
-  const centre = [...g.noeuds].sort((p, q) => q.voisins.size - p.voisins.size || p.nom.localeCompare(q.nom))[0];
+  const centre = g.noeuds.find((n) => n.nom === CARTE_FLUX.centre)
+    || [...g.noeuds].sort((p, q) => q.voisins.size - p.voisins.size || p.nom.localeCompare(q.nom))[0];
   const autres = cfOrdre(g.noeuds.filter((n) => n !== centre));
   if (centre) Object.assign(centre, { x: CF_L / 2, y: CF_H / 2, grand: true });
   autres.forEach((n, i) => {
