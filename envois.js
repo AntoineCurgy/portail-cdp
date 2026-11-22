@@ -9,8 +9,11 @@
 const SOURCE_ENVOIS = { chemin: "/api/envois", verifier: (d) => Array.isArray(d.envois) };
 const RESULTATS = { parti: ["Parti", "t-vert"], partiel: ["Partiel", "t-ambre"], "en echec": ["En échec", "t-rouge"] };
 const estCode = (e) => /code de connexion$/.test(e.motif || "");
+const estSuivi = (e) => /^\[Statut Ticket Portail des Rapports\]/.test(e.objet || "");
 const GROUPES_ENVOI = [["", "Tous", () => true],
                        ["rapports", "Rapports", (e) => / ?rapport /.test(" " + (e.motif || ""))],
+                       // RGI_01882 : les emails de suivi d'une demande, a part (depot d'Antoine du 2026-11-19 : il ne les trouvait pas)
+                       ["suivi", "Suivi des demandes", estSuivi],
                        ["codes", "Codes de connexion", estCode],
                        ["echecs", "En échec", (e) => e.resultat !== "parti"]];
 const filtresEnvois = { g: "", q: "" };
@@ -33,6 +36,11 @@ function pourquoi(e) {
     const td = el("td", null, "Rapport ");
     td.append(el("span", "mono discret", r[1].replace(/^AUT_/, "")));   // le numero court, comme les autres listes (5A)
     return td;
+  }
+  // RGI_01882 : un email de suivi dit « Suivi de demande » et son ticket, jamais le motif interne du registre
+  if (estSuivi(e)) {
+    const t = String(e.objet || "").match(/Tickets? ([\d, ]+\d)/);
+    return el("td", null, "Suivi de demande" + (t ? ` · Ticket ${t[1]}` : ""));
   }
   return el("td", null, estCode(e) ? "Code de connexion" : (m || e.appelant || "—"));
 }

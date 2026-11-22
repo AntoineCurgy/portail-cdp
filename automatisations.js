@@ -92,7 +92,7 @@ function vueAutomatisations([donnees]) {
     h2.append(" ", cpt);
     sec.append(h2);
     for (const a of liste) {
-      const b = ligneAuto(a);
+      const b = ligneAuto(a, autos.some((x) => x.arrete_au_choix));
       lignesAutos.push([b, a]);
       sec.append(b);
     }
@@ -145,7 +145,7 @@ function vueAutomatisations([donnees]) {
   return [figerTete(tete), enTeteW, ...sections, vide];
 }
 
-function ligneAuto(a) {
+function ligneAuto(a, placeDate) {
   const st = statutDe(a);
   // La ligne est un bloc : le bouton du nom ouvre la fiche et couvre toute la ligne ; le bouton
   // Documentation se pose a gauche des carres, au-dessus (Antoine, 2026-10-22).
@@ -175,6 +175,17 @@ function ligneAuto(a) {
   const outils = el("span", "la-o");
   // la demande vivait dans la fiche ; la fiche ne s'ouvre plus quand les details existent : elle passe sur la ligne
   outils.append(boutonDocumentation(a), boutonDemande({ id: a.id, nom: a.nom }, "dm-b"));
+  // RGI_01936 : recalculer a une date, comme sur la ligne de son rapport (Antoine, 2026-11-20, PCP049-1120-g : « Ok pour A »)
+  if (a.arrete_au_choix) outils.append(boutonArrete(a, String(a.arrete_au_choix.sujet),
+    "/api/rapports/" + encodeURIComponent(a.arrete_au_choix.id) + "/rafraichir", d, avisAutos, relireAutosBientot));
+  else if (placeDate) {
+    // la place du calendrier, vide et invisible, pour que les carres des lignes restent alignes (chaque ligne est sa grille)
+    const vide = bouton("dm-b rf-b rf-vide");
+    vide.prepend(ico("calendrier", 15));
+    vide.tabIndex = -1;
+    vide.setAttribute("aria-hidden", "true");
+    outils.append(vide);
+  }
   // rafraichir cette automatisation, comme la ligne de son rapport (Antoine, 2026-11-10, PCP049-1110-p) ; absent si
   // le portail ne sait pas le demander, ou sans droit
   // la fleche, dans sa colonne a gauche du nom, comme dans Rapports (Antoine, 2026-11-11, DEC_00835, choix 1A)

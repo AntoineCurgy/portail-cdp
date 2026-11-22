@@ -358,6 +358,7 @@ div.lb.ouverte .la-nom strong { font-weight: 500; }
 .lb-o:focus-visible { outline: none; }
 div.lb:has(.lb-o:focus-visible) { outline: 2px solid var(--marque); outline-offset: -2px; }
 .la-o { position: relative; z-index: 1; display: flex; align-items: center; gap: var(--s00); }   /* Documentation et la demande, sur la ligne */
+.rf-vide { visibility: hidden; }   /* la place du calendrier sur une ligne sans date : les carres restent alignes (RGI_01936) */
 .la .doc-b, .gd .doc-b { position: relative; z-index: 1; margin: 0; padding: var(--s0) var(--s2); font-size: var(--t-meta); }   /* le meme bouton dans Rapports (2026-11-04) */
 .la-id { color: var(--discret); font-size: var(--t-meta); }
 .la-nom { display: flex; flex-direction: column; gap: var(--s00); line-height: 1.3; }
@@ -490,7 +491,7 @@ input[type="checkbox"], input[type="radio"] { font: inherit; }   /* jamais la po
   .contenu { padding: var(--s3) var(--s3) var(--s5); }
   .la { grid-template-columns: 1rem 2rem minmax(0, 1fr); }
   .la:not(.ag-la) { grid-template-columns: 1rem 3rem 1.8rem minmax(0, 1fr) auto; column-gap: var(--s2); }
-  .la-h, .la-d, .ag-la .o-l { display: none; }
+  .la-h, .la-d, .ag-la .o-l, .rf-vide { display: none; }
   .aide { grid-template-columns: 1fr; }
   .aide-som { position: static; flex-direction: row; flex-wrap: wrap; }
   .ke-d { border-left: 0; padding-left: 0; }
@@ -498,7 +499,7 @@ input[type="checkbox"], input[type="radio"] { font: inherit; }   /* jamais la po
 @media (max-width: 40rem) {
   input, select, textarea { font-size: var(--champ-tel); }   /* 16 px dans tout champ sur telephone (DEC_00850 de PCP056) */
   .b-in { gap: var(--s1); padding: 0 var(--s3); }
-  .b-op, .b-barre, .b-m { display: none; }
+  .b-op, .b-barre, .b-m, .comme-o { display: none; }   /* sur telephone, la pastille seule ouvre « Voir comme » */
   .aide-dl { grid-template-columns: 1fr; }
   .bas-in { padding: var(--s3); }
 }
@@ -553,6 +554,11 @@ input[type="checkbox"], input[type="radio"] { font: inherit; }   /* jamais la po
 .dm-pied { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); margin-top: var(--s2); }
 .dm-pied .message { margin: 0; }
 .dm-ok { margin: var(--s1) 0 var(--s0); padding: var(--s2) var(--s2); border-left: 4px solid var(--vert); border-radius: 0 var(--r-bouton) var(--r-bouton) 0; background-color: var(--vert-f); font-size: var(--t-corps); }
+/* le recalcul a une date par email (RGI_01947, 2A et 3B d'Antoine, PCP049-1122-e) : le nom du rapport, le delai, la coche */
+.ar-nom { font-weight: 600; color: var(--encre); }
+.ar-delai { display: flex; align-items: center; gap: var(--s1); margin: var(--s2) 0 0; font-size: var(--t-petit); color: var(--discret); }
+.ar-fait { display: flex; align-items: flex-start; gap: var(--s2); color: var(--vert); font-weight: 600; }
+.ar-fait .ico { flex: none; margin-top: 2px; }
 .dm-f { display: inline-flex; align-items: center; gap: var(--s1); }
 .dm-b { font: inherit; display: inline-flex; align-items: center; justify-content: center; width: var(--h-controle); height: var(--h-controle); box-sizing: border-box; margin-left: var(--s1); padding: 0; vertical-align: middle; background-color: transparent; border: 0; border-radius: var(--r-petit); color: var(--discret); cursor: pointer; }
 .dm-b:hover, .dm-b:focus-visible { color: var(--marque); background-color: var(--survol); }
@@ -572,6 +578,7 @@ input[type="checkbox"], input[type="radio"] { font: inherit; }   /* jamais la po
 .rt-outils { width: 100%; }
 .rt-sp { flex: 1; }
 .rt-l { cursor: pointer; }
+.rt-num { font-size: inherit; }
 .rt-l:hover, .rt-l:focus-visible { background-color: var(--survol); }
 .rt-l:focus-visible { outline: 2px solid var(--marque); outline-offset: -2px; }
 
@@ -581,6 +588,8 @@ input[type="checkbox"], input[type="radio"] { font: inherit; }   /* jamais la po
 .rt-dl dd { margin: 0; }
 .rt-h { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--s1); font-size: var(--t-corps); }
 .rt-h .mono { color: var(--discret); margin-right: var(--s1); }
+.rt-rep { margin: var(--s3) 0 0; }   /* RGI_01915 : « Répondre » sous le fil */
+.dm-sujet { margin: 0 0 var(--s2); color: var(--discret); font-size: var(--t-petit); }
 .rt-sur { display: grid; gap: var(--s0); margin-bottom: var(--s2); font-size: var(--t-meta); font-weight: 500; color: var(--discret); }
 .rt-sur select { font: inherit; font-size: var(--t-corps); font-weight: 400; height: var(--h-controle); box-sizing: border-box; padding: 0 var(--s1); border: 1px solid var(--bord-champ); border-radius: var(--r-bouton); background-color: var(--surface); color: var(--encre); }
 /* La fenetre d'un email de l'onglet « Emails » (Antoine, 2026-11-11) : la moitie de l'ecran, les champs en tete comme le
@@ -701,3 +710,97 @@ a.ac-j:hover { border-color: var(--marque); }
 .cf .cf-lg { display: inline-flex; align-items: center; gap: .3rem; }
 .cf .cf-tr { display: inline-block; width: 18px; border-top: 2px solid var(--discret); }
 .cf .cf-tr.ctl { border-top-style: dotted; }
+
+/* RGI_01916 : « Voir comme », pour l'administrateur : sa pastille ouvre la liste ; un bandeau dit qui il regarde */
+.avatar-b { cursor: pointer; }
+.comme-o { font: inherit; font-size: var(--t-meta); color: var(--surface); background-color: transparent; border: 1px solid var(--sur-marque); border-radius: var(--r-bouton); padding: var(--s1) var(--s2); cursor: pointer; white-space: nowrap; }
+.comme-o:hover { background-color: var(--sur-marque); }
+.comme-o:focus-visible { outline: 3px solid var(--surface); outline-offset: 2px; }
+.avatar-b:hover { box-shadow: 0 0 0 3px var(--trait); }
+.avatar-b:focus-visible { outline: 3px solid var(--surface); outline-offset: 2px; }
+.comme-b { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--s2); padding: var(--s1) var(--s3); background-color: var(--ambre-f); color: var(--encre); border-bottom: 1.5px solid var(--bord); font-size: var(--t-petit); }
+.comme-fen { width: 480px; max-height: calc(100vh - 2 * var(--s3)); overflow-y: auto; }
+.comme-q { display: block; margin-bottom: var(--s2); }
+.comme-q input { width: 100%; }
+.comme-l { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s0); }
+.comme-u { display: grid; width: 100%; text-align: left; padding: var(--s1) var(--s2); font: inherit; background-color: transparent; border: 0; border-radius: var(--r-bouton); cursor: pointer; color: var(--encre); }
+.comme-u:hover, .comme-u[aria-current="true"] { background-color: var(--survol); }
+.comme-n { font-weight: 500; }
+.comme-a { color: var(--discret); font-size: var(--t-petit); }
+
+/* ------------------------------------------------------------------ les droits reglés au portail (droits.js)
+   RGI_01949 ; DEC_01353, DEC_01360 : l'interrupteur « Administrer », le bouton « Utilisateurs », la fenetre en trois
+   onglets, l'oeil et le nombre de personnes sur les lignes. Rien ne se pose sans body.dr-on, que seul droits.js met,
+   quand l'API sert les droits a l'administrateur. */
+body.dr-on:not(.dr-admin) .dr-adm, body.dr-on:not(.dr-admin) .comme-o { display: none !important; }
+body.dr-on:not(.dr-admin) tr.dr-masque, body.dr-on:not(.dr-admin) .dr-w:has(.dr-masque-l) { display: none; }
+body.dr-occupe { cursor: progress; }
+.dr-ico { display: inline-flex; vertical-align: middle; margin-right: var(--s1); }
+.dr-sw { display: inline-flex; align-items: center; gap: var(--s1); margin-right: var(--s2); font-size: var(--t-meta); color: var(--surface); cursor: pointer; }
+.dr-sw input { position: absolute; opacity: 0; }
+.dr-sw i { position: relative; width: var(--s5); height: var(--s3); background-color: var(--sur-marque); border-radius: var(--r-pilule); }
+.dr-sw i::after { content: ""; position: absolute; top: var(--s00); left: var(--s00); width: calc(var(--s3) - 2 * var(--s00)); height: calc(var(--s3) - 2 * var(--s00)); background-color: var(--surface); border-radius: var(--r-pilule); transition: left .12s; }
+.dr-sw input:checked + i { background-color: var(--vert); }
+.dr-sw input:checked + i::after { left: calc(var(--s5) - var(--s3) + var(--s00)); }
+.dr-sw input:focus-visible + i { outline: 2px solid var(--surface); outline-offset: 2px; }
+.dr-haut { display: inline-flex; align-items: center; margin-right: var(--s2); }
+.dr-oeil { display: inline-flex; align-items: center; justify-content: center; width: var(--h-controle); height: var(--h-controle); padding: 0; color: var(--marque); background-color: transparent; border: 1px solid transparent; border-radius: var(--r-bouton); cursor: pointer; }
+.dr-oeil:hover, .dr-oeil:focus-visible { border-color: var(--bord-champ); background-color: var(--survol); }
+.dr-oeil.off { color: var(--pale); }
+.dr-g2 { display: inline-flex; align-items: center; gap: var(--s1); margin-right: var(--s2); vertical-align: middle; }
+.d-n { min-width: 4.25rem; text-align: center; font: inherit; font-size: var(--t-meta); padding: var(--s00) var(--s2); color: var(--marque); background-color: var(--rail-on); border: 0; border-radius: var(--r-pilule); cursor: pointer; white-space: nowrap; }
+tr.dr-masque > th, tr.dr-masque > td { color: var(--pale); background-color: var(--survol); }
+.dr-w { display: flex; align-items: center; gap: var(--s1); }
+.dr-w > .tiroir-l { flex: 1; min-width: 0; }
+.dr-masque-l { opacity: .55; }
+.dr-note { position: fixed; left: 50%; bottom: var(--s4); transform: translate(-50%, var(--s3)); z-index: 2000; padding: var(--s2) var(--s3); font-size: var(--t-petit); color: var(--surface); background-color: var(--encre); border-radius: var(--r-bouton); opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s; }
+.dr-note.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.dr-annuler { padding: 0; font: inherit; font-weight: 600; color: var(--clair); background-color: transparent; border: 0; text-decoration: underline; cursor: pointer; }
+.dr-fen { display: flex; flex-direction: column; width: min(60rem, calc(100vw - 2 * var(--s3))); height: calc(100vh - 2 * var(--s5)); box-sizing: border-box; }
+.dr-fen-qui { width: min(35rem, calc(100vw - 2 * var(--s3))); max-height: calc(100vh - 2 * var(--s3)); overflow-y: auto; }
+.dr-t { display: flex; align-items: center; gap: var(--s2); margin-bottom: var(--s3); }
+.dr-sp { flex: 1; }
+.dr-z { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.d-a { flex: 1; min-height: 0; display: grid; grid-template-columns: 19rem 1fr; grid-template-rows: 100%; gap: var(--s3); }
+.d-g { display: flex; flex-direction: column; gap: var(--s2); min-height: 0; border-right: 1px solid var(--filet); padding-right: var(--s3); }
+.d-g .cherche input { width: 100%; }
+.d-l { flex: 1; min-height: 0; overflow-y: auto; display: grid; align-content: start; gap: var(--s00); }
+.d-d { display: flex; flex-direction: column; gap: var(--s1); min-height: 0; }
+.d-d > .d-r { flex: 1; min-height: 0; }
+.d-p { display: grid; text-align: left; width: 100%; padding: var(--s1) var(--s2); font: inherit; font-size: var(--t-petit); background-color: transparent; border: 0; border-radius: var(--r-bouton); cursor: pointer; }
+.d-p span { font-size: var(--t-meta); color: var(--discret); }
+.d-p:hover { background-color: var(--survol); }
+.d-p.on { background-color: var(--rail-on); }
+.d-t { margin: 0; font-size: var(--t-titre-carte); }
+.dr-h { margin: var(--s2) 0 0; font-size: var(--t-meta); font-weight: 600; color: var(--discret); text-transform: uppercase; letter-spacing: .04em; }
+.dr-c-s { font-size: var(--t-meta); color: var(--discret); }
+.dr-chips { display: flex; flex-wrap: wrap; gap: var(--s1); align-items: center; }
+.d-gc { font: inherit; font-size: var(--t-meta); padding: var(--s00) var(--s2); color: var(--discret); background-color: var(--surface); border: 1px solid var(--bord-champ); border-radius: var(--r-pilule); cursor: pointer; }
+.d-gc.on { color: var(--surface); background-color: var(--marque); border-color: var(--marque); }
+.dr-chip { display: inline-flex; align-items: center; gap: var(--s00); padding: var(--s00) var(--s1) var(--s00) var(--s2); font-size: var(--t-meta); background-color: var(--rail-on); border-radius: var(--r-pilule); }
+.dr-chip-x { padding: 0 var(--s0); font: inherit; color: var(--discret); background-color: transparent; border: 0; cursor: pointer; }
+.dr-add, .dr-nv input, .dr-nv select, .dr-ng input { font: inherit; font-size: var(--t-petit); height: var(--h-controle); box-sizing: border-box; padding: 0 var(--s2); color: var(--encre); background-color: var(--surface); border: 1px solid var(--bord-champ); border-radius: var(--r-bouton); }
+.dr-add { align-self: flex-start; }
+.dr-nv { display: grid; gap: var(--s1); max-width: 26rem; }
+.dr-nv .btn { justify-self: start; }
+.dr-ng { display: flex; gap: var(--s2); }
+.d-r { display: grid; align-content: start; overflow-y: auto; }
+.d-rl { display: grid; grid-template-columns: var(--s4) 1fr auto; gap: var(--s2); align-items: center; padding: var(--s0) var(--s1); font-size: var(--t-petit); border-bottom: 1px solid var(--filet); }
+.d-rl.non { color: var(--pale); }
+.d-rl input { accent-color: var(--marque); }
+.dr-ed { display: grid; gap: var(--s1); font-size: var(--t-corps); }
+.dr-tot { margin: 0; color: var(--marque); font-weight: 600; }
+/* l'onglet Emails de la fenetre des droits (1B, PCP049-1122-l) : une ligne par rapport, l'interrupteur, le nom, les jours */
+.dr-el { display: grid; grid-template-columns: var(--s6) 1fr auto; gap: var(--s2); align-items: center; padding: var(--s0) var(--s1); font-size: var(--t-petit); border-bottom: 1px solid var(--filet); }
+.dr-el.non .dr-en { color: var(--pale); }
+.dr-sw2 { position: relative; display: inline-flex; cursor: pointer; }
+.dr-sw2 input { position: absolute; opacity: 0; }
+.dr-sw2 i { position: relative; width: var(--s5); height: var(--s3); background-color: var(--bord-champ); border-radius: var(--r-pilule); }
+.dr-sw2 i::after { content: ""; position: absolute; top: var(--s00); left: var(--s00); width: calc(var(--s3) - 2 * var(--s00)); height: calc(var(--s3) - 2 * var(--s00)); background-color: var(--surface); border-radius: var(--r-pilule); transition: left .12s; }
+.dr-sw2 input:checked + i { background-color: var(--vert); }
+.dr-sw2 input:checked + i::after { left: calc(var(--s5) - var(--s3) + var(--s00)); }
+.dr-sw2 input:focus-visible + i { outline: 2px solid var(--marque); outline-offset: 2px; }
+.dr-js { display: inline-flex; gap: var(--s0); }
+.dr-j1 { width: var(--h-controle); height: var(--s4); padding: 0; font: inherit; font-size: var(--t-meta); color: var(--discret); background-color: var(--surface); border: 1px solid var(--bord-champ); border-radius: var(--r-bouton); cursor: pointer; }
+.dr-j1.on { color: var(--surface); background-color: var(--marque); border-color: var(--marque); }
+.dr-j1:disabled { opacity: .35; cursor: default; }

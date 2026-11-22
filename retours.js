@@ -12,13 +12,17 @@ const ETATS_RETOUR = { recu: ["Reçu", "t-ferme"], en_cours: ["En cours", "t-amb
 // Les mots de la fenetre « Nouveau retour » (depot d'Antoine du 2026-11-05, recommandations de PCP049-1105-c). Un nouveau
 // besoin ne porte sur rien d'existant : il part sans liste. Un retour passe classe « demande » porte sur une
 // automatisation existante : il se lit « Amelioration ».
-const TYPES_RETOUR = [["anomalie", "Anomalie"], ["amelioration", "Amélioration"], ["demande", "Nouveau besoin"]];
+// RGI_01913 (DEC_01211, Antoine a PCP049-1118-af : « un "onglet" autre a cote de Nouveau besoin [...] texte libre, tout
+// simplement ») : « Autre » part comme un nouveau besoin, sans rapport
+const TYPES_RETOUR = [["anomalie", "Anomalie"], ["amelioration", "Amélioration"], ["demande", "Nouveau besoin"], ["autre", "Autre"]];
+const SANS_RAPPORT = ["demande", "autre"];
 // RGI_01879 : le type montre vient du verdict de l'equipe (DEC_01164) ; sans verdict, « À qualifier »
 const MOT_TYPE = { anomalie: "Anomalie", amelioration: "Amélioration", besoin: "Nouveau besoin", question: "Question",
                    a_qualifier: "À qualifier" };
 const EXEMPLES = { anomalie: "Dans le rapport de ce matin, la ligne… affiche… alors que…",
                    amelioration: "J'aimerais ajouter dans le rapport une colonne…",
-                   demande: "J'aimerais recevoir chaque semaine un contrôle sur…" };
+                   demande: "J'aimerais recevoir chaque semaine un contrôle sur…",
+                   autre: "Votre retour, en quelques lignes…" };
 // la barre : Tous, Ouverts (recu et en cours), Traites, Sans suite
 const GROUPES = [["", "Tous", () => true], ["ouverts", "Ouverts", (r) => r.etat === "recu" || r.etat === "en_cours"],
                  ["corriges", "Traités", (r) => r.etat === "corrige"], ["refermes", "Sans suite", (r) => r.etat === "referme"]];
@@ -96,7 +100,17 @@ function vueRetours([rets, autos]) {
     l.setAttribute("aria-label", `${r.objet}, ${(ETATS_RETOUR[r.etat] || ETATS_RETOUR.recu)[0]} : voir le détail`);
     const e = el("td");
     e.append(tagRetour(r.etat));
-    l.append(el("td", "mono", numeroTicket(r.id)), el("td", "mono gd-date", jourCourtRetour(r.date)), e, el("td", null, MOT_TYPE[r.type] || "À qualifier"),
+    // DEC_01223 (Antoine, le 2026-11-19 : « il clique sur le numéro du ticket ») : le numero se voit cliquable, et ouvre
+    // la fenetre du ticket, son historique et « Repondre », comme la ligne
+    const num = el("td", "mono");
+    if (numeroTicket(r.id)) {
+      const lien = bouton("lien rt-num", numeroTicket(r.id));
+      lien.type = "button";
+      lien.tabIndex = -1;   // la ligne porte deja le clavier
+      lien.setAttribute("aria-label", `Ouvrir le ticket ${numeroTicket(r.id)}`);
+      num.append(lien);
+    }
+    l.append(num, el("td", "mono gd-date", jourCourtRetour(r.date)), e, el("td", null, MOT_TYPE[r.type] || "À qualifier"),
              el("td", null, r.nom), el("td", "rt-o", r.objet), el("td", "discret", r.de || ""));
     // le clic ne remonte pas au document, qui fermerait aussitot le panneau ouvert (commun.js)
     l.addEventListener("click", (ev) => { ev.stopPropagation(); ouvrirDetail(r, l); });
@@ -135,7 +149,33 @@ function numeroTicket(ident) {
   return m ? m[1] : "";
 }
 
-// Le panneau d'un retour : son detail, puis son historique (la creation, chaque version publiee qui le cite).
+// RGI_01914 : les mots des etapes, ceux des emails d'etape
+const MOT_ETAPE = { recue: "Reçue", qualifiee: "Qualifiée", cadree: "Cadrée", chiffree: "Chiffrée", acceptee: "Acceptée",
+                    en_construction: "En construction", livree: "Livrée, à vérifier", resolue: "Résolue",
+                    en_attente_retour: "En attente de votre retour", bloquee: "Bloquée", refusee: "Refusée" };
+const MOT_CANAL = { portail: "par le portail", email: "par email", reunion: "en réunion", antoine: "à Antoine" };
+// « 2026-11-18T14:30:21+01:00 » ou « 2026-11-18 14:33 » en « 18/11 14:30 » ; un jour seul en « 18/11 »
+const quandCourt = (s) => {
+  const m = String(s || "").match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/);
+  return m ? `${m[3]}/${m[2]}${m[4] ? ` ${m[4]}:${m[5]}` : ""}` : String(s || "");
+};
+
+// RGI_01914 (DEC_01207) : le fil d'une demande, dans l'ordre : sa reception, ses etapes, les emails qui lui sont partis,
+// les reponses du demandeur et chaque version publiee qui la cite ; emails et reponses, pour le demandeur seul
+function filDe(r) {
+  const fil = [];
+  for (const h of r.historique || []) {
+    fil.push([h.date, h.quoi === "publie" ? `Traité, dans la version ${h.version} de l'automatisation`
+      : "Reçu par l'équipe qui suit l'automatisation"]);
+  }
+  for (const e of r.etapes || []) fil.push([e.le, `Étape : ${MOT_ETAPE[e.etape] || e.etape}`]);
+  for (const m of r.emails || []) fil.push([m.le, `Email envoyé : ${m.objet}`]);
+  for (const x of r.reponses || []) fil.push([x.le, `Réponse ${MOT_CANAL[x.canal] || ""} : ${x.texte}`.replace("  ", " ")]);
+  const cle = (q) => String(q || "").replace("T", " ");   // « 2026-11-18T14:30 » et « 2026-11-18 15:02 » se trient ensemble
+  return fil.sort((a, b) => cle(a[0]).localeCompare(cle(b[0])));
+}
+
+// Le panneau d'un retour : son detail, puis son fil, et « Repondre » sur son ticket ouvert (RGI_01915).
 function ouvrirDetail(r, depuis) {
   const titre = el("h2", null, r.objet);
   titre.id = "panneau-titre";
@@ -149,20 +189,28 @@ function ouvrirDetail(r, depuis) {
   demande.append(el("h3", null, "Le retour"), el("p", null, r.demande || r.objet));
   const histo = el("section", "fi-s");
   const ol = el("ol", "rt-h");
-  for (const h of r.historique || []) {
+  for (const [quand, quoi] of filDe(r)) {
     const li = el("li");
-    li.append(el("span", "mono", h.date), " ", h.quoi === "publie"
-      ? `Traité, dans la version ${h.version} de l'automatisation` : "Reçu par l'équipe qui suit l'automatisation");
+    li.append(el("span", "mono", quandCourt(quand)), " ", quoi);
     ol.append(li);
   }
   if (r.etat === "referme") ol.append(el("li", "discret", "L'équipe n'y donne pas suite."));
   histo.append(el("h3", null, "Historique"), ol);
-  ouvrirPanneau("retour", [titre, tete, dl, demande, histo], depuis);
+  const blocs = [titre, tete, dl, demande, histo];
+  if (r.repondre) {   // RGI_01915 : seulement le demandeur, sur son ticket ouvert
+    const rep = bouton("btn", "Répondre");
+    rep.type = "button";
+    rep.addEventListener("click", () => ouvrirNouveau([], rep, null, r));
+    const pied = el("p", "rt-rep");
+    pied.append(rep);
+    blocs.push(pied);
+  }
+  ouvrirPanneau("retour", blocs, depuis);
 }
 
 // La fenetre « Nouveau retour » : sur quoi, le type, le texte ; elle part par note a l'equipe qui suit
 // l'automatisation (`POST /api/demandes`), ou au pilote du client pour un besoin general.
-function ouvrirNouveau(autos, depuis, choisi) {
+function ouvrirNouveau(autos, depuis, choisi, ticket) {
   fermerDemande();
   const voile = el("div", "doc-voile");
   voile.setAttribute("role", "dialog");
@@ -173,7 +221,7 @@ function ouvrirNouveau(autos, depuis, choisi) {
   const x = bouton("doc-x", "×");
   x.setAttribute("aria-label", "Fermer");
   x.addEventListener("click", fermerDemande);
-  const titre = el("h2", null, "Nouveau retour");
+  const titre = el("h2", null, ticket ? `Répondre au ticket ${numeroTicket(ticket.id)}` : "Nouveau retour");
   titre.id = "dm-titre";
   const labSur = el("label", "rt-sur");
   labSur.append(el("span", null, "Sélectionner le rapport"));
@@ -272,18 +320,23 @@ function ouvrirNouveau(autos, depuis, choisi) {
   envoyer.type = "submit";
   pied.append(message, envoyer);
   zone.id = "dm-zone";
-  const labZone = el("label", "dm-lab", "Décrivez ici");   // un libelle au-dessus de chaque champ (DEC_00520, option 9B)
+  const labZone = el("label", "dm-lab", ticket ? "Votre réponse" : "Décrivez ici");   // un libelle au-dessus de chaque champ (DEC_00520, option 9B)
   labZone.htmlFor = "dm-zone";
   // l'ordre suit le geste : le type d'abord, puis le rapport s'il en faut un, puis le texte
   const natureChoisie = () => (fen.querySelector("input[name=nature]:checked") || {}).value || "demande";
   const accorder = () => {
     const n = natureChoisie();
-    labSur.hidden = n === "demande";
+    labSur.hidden = SANS_RAPPORT.includes(n);
     zone.placeholder = EXEMPLES[n];
   };
-  fen.append(x, titre, el("p", "dm-lab", "Type"), choix, labSur, labZone, zone, blocPieces, pied);
-  choix.addEventListener("change", accorder);
-  accorder();
+  if (ticket) {   // RGI_01915 : la meme fenetre, sans type ni rapport : la reponse va au fil du ticket
+    fen.append(x, titre, el("p", "dm-sujet", ticket.objet), labZone, zone, blocPieces, pied);
+    zone.placeholder = "Votre réponse à l'équipe…";
+  } else {
+    fen.append(x, titre, el("p", "dm-lab", "Type"), choix, labSur, labZone, zone, blocPieces, pied);
+    choix.addEventListener("change", accorder);
+    accorder();
+  }
   fen.addEventListener("submit", async (e) => {
     e.preventDefault();
     const texte = zone.value.trim();
@@ -306,11 +359,14 @@ function ouvrirNouveau(autos, depuis, choisi) {
       message.textContent = "Une pièce jointe n'a pas pu être lue. Retirez-la et réessayez.";
       return;
     }
-    const r = await appeler("POST", "/api/demandes", { id: nature === "demande" ? "GENERAL" : sur.value, rapport: "", nature, texte, pieces },
+    const r = await appeler("POST", "/api/demandes", ticket
+      ? { id: ticket.automatisation, rapport: "", nature: "reponse", ticket: ticket.id, texte, pieces }
+      : { id: SANS_RAPPORT.includes(nature) ? "GENERAL" : sur.value, rapport: "", nature, texte, pieces },
                             "json", pieces.length ? DELAI_PIECES : undefined);
     if (r.statut === 200) {
-      fen.replaceChildren(x, titre, el("p", "dm-ok",
-        "Votre retour est transmis. Il apparaîtra dans ce tableau, avec son état, à la prochaine mise à jour."));
+      fen.replaceChildren(x, titre, el("p", "dm-ok", ticket
+        ? "Votre réponse est transmise à l'équipe. Elle apparaîtra dans l'historique du ticket à la prochaine mise à jour."
+        : "Votre retour est transmis. Il apparaîtra dans ce tableau, avec son état, à la prochaine mise à jour."));
       x.focus();
       return;
     }
@@ -327,7 +383,7 @@ function ouvrirNouveau(autos, depuis, choisi) {
   });
   document.body.append(voile);
   fenetreDemande = { voile, depuis };
-  sur.focus();
+  (ticket ? zone : sur).focus();
 }
 
 // Le bouton des courriels de rapport ouvre `retours.html?nouveau=<AUT_…>` : la fenetre « Nouveau retour » sur cette

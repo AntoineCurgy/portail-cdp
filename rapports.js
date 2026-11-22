@@ -131,6 +131,7 @@ function vueRapports([donnees, autos]) {
 function ligneRapport(r, avis, auto) {
   const tr = el("tr");
   tr.dataset.r = "1";
+  tr.dataset.aut = String(r.automatisation || "");   // RGI_01949 : l'oeil et le compte des droits de l'administrateur (droits.js)
   const nom = el("th");
   nom.scope = "row";
   const f = el("td", "td-f", flux(r.flux));

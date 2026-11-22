@@ -328,6 +328,7 @@ function poserMoi() {
   avatar.title = moi.nom ? moi.nom + " · " + adresse : adresse;
   avatar.setAttribute("aria-label", "Connecté : " + (moi.nom || adresse));
   if (!$("maj").textContent) majBandeau(moi.maj);
+  poserComme();
   // l'onglet « Retours » n'existe que si le service lit la liste des retours (DEC_00506) ; il remplace alors les bulles ;
   // l'onglet « Emails » n'existe que pour l'administrateur du portail (DEC_00598, DEC_00606). Les deux se montrent par
   // une classe de <html>, posee des le <head> depuis le cache (le script en ligne de chaque page) : le rail ne
@@ -337,6 +338,111 @@ function poserMoi() {
   // L'onglet « Agents » reste toujours visible, vide ou non (Antoine, 2026-10-31, PCP049-1031-c : « toujours
   // montrer Agents IA, Automatisations, Rapports et Cartographie », pour donner envie) ; il disparaissait quand
   // la feuille masquait chaque agent (2026-10-16).
+}
+
+// RGI_01916 (DEC_01214, Antoine a PCP049-1118-ag, choix A) : « Voir comme », pour l'administrateur seul. Son pastille ouvre
+// la liste des utilisateurs du client ; regarde, le portail montre ce que cet utilisateur voit, en lecture seule, sous un
+// bandeau qui le dit et ramene a soi. L'API decide de tout : la page ne fait que poser ou retirer le regard.
+function poserComme() {
+  const av = $("avatar");
+  if (moi.voir_comme && av && !av.dataset.comme) {
+    av.dataset.comme = "1";
+    av.setAttribute("role", "button");
+    av.tabIndex = 0;
+    av.classList.add("avatar-b");
+    av.title = "Voir le portail comme un utilisateur";
+    av.setAttribute("aria-label", "Voir le portail comme un utilisateur");
+    av.addEventListener("click", ouvrirComme);
+    av.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); ouvrirComme(); } });
+    // Antoine, le 2026-11-19 (« je ne vois pas le "prendre le role de" en haut a droite ») : un bouton qui se lit, a
+    // cote de la pastille, ouvre la meme liste
+    const o = bouton("comme-o", "Voir comme…");
+    o.addEventListener("click", ouvrirComme);
+    av.before(o);
+  }
+  let b = $("bandeau-comme");
+  if (!moi.comme) { if (b) b.remove(); return; }
+  if (!b) {
+    b = el("div", "comme-b");
+    b.id = "bandeau-comme";
+    b.setAttribute("role", "status");
+    const haut = document.querySelector(".haut");
+    if (haut) haut.after(b);
+  }
+  const retour = bouton("btn btn-s", "Revenir à moi");
+  retour.type = "button";
+  retour.addEventListener("click", () => regarder(""));
+  const qui = moi.comme.nom ? `${moi.comme.nom} (${moi.comme.adresse})` : moi.comme.adresse;
+  b.replaceChildren(el("span", null, `Vous voyez le portail comme ${qui}, en lecture seule.`), retour);
+}
+
+async function regarder(adresse) {
+  const r = await appeler("POST", "/api/voir-comme", { adresse });
+  if (r.statut !== 200) return false;
+  viderCache();
+  location.reload();
+  return true;
+}
+
+function ouvrirComme() {
+  if (document.querySelector(".comme-voile")) return;
+  const voile = el("div", "doc-voile comme-voile");
+  voile.setAttribute("role", "dialog");
+  voile.setAttribute("aria-modal", "true");
+  voile.setAttribute("aria-labelledby", "comme-titre");
+  const fen = el("div", "doc-fen comme-fen");
+  const x = bouton("doc-x", "×");
+  x.setAttribute("aria-label", "Fermer");
+  const titre = el("h2", null, "Voir le portail comme…");
+  titre.id = "comme-titre";
+  const lab = el("label", "cherche comme-q");   // le champ de recherche des listes du portail
+  lab.append(el("span", "sr", "Chercher un utilisateur"));
+  const cherche = el("input");
+  cherche.type = "search";
+  cherche.placeholder = "Chercher un utilisateur…";
+  lab.append(cherche);
+  const liste = el("ul", "comme-l");
+  const message = el("p", "message", "Chargement…");
+  message.setAttribute("aria-live", "polite");
+  fen.append(x, titre, lab, message, liste);
+  voile.append(fen);
+  const fermer = () => { voile.remove(); document.removeEventListener("keydown", echap); $("avatar").focus(); };
+  const echap = (e) => { if (e.key === "Escape") fermer(); };
+  x.addEventListener("click", fermer);
+  voile.addEventListener("click", (e) => { if (e.target === voile) fermer(); });
+  document.addEventListener("keydown", echap);
+  document.body.append(voile);
+  cherche.focus();
+  appeler("GET", "/api/utilisateurs").then(({ statut, donnees }) => {
+    if (statut !== 200 || !donnees || !Array.isArray(donnees.utilisateurs)) {
+      message.className = "message erreur";
+      message.textContent = "La liste des utilisateurs n'a pas pu être lue. Réessayez dans un instant.";
+      return;
+    }
+    message.textContent = "";
+    message.hidden = true;
+    const lignes = donnees.utilisateurs.map((u) => {
+      const li = el("li");
+      const b = bouton("comme-u", "");
+      b.type = "button";
+      b.append(el("span", "comme-n", u.nom || u.adresse), el("span", "comme-a", u.adresse));
+      if (u.adresse === donnees.comme) b.setAttribute("aria-current", "true");
+      b.addEventListener("click", async () => {
+        if (!(await regarder(u.adresse))) {
+          message.hidden = false;
+          message.className = "message erreur";
+          message.textContent = "Impossible de voir le portail comme cet utilisateur.";
+        }
+      });
+      li.append(b);
+      liste.append(li);
+      return [li, `${u.nom} ${u.adresse}`.toLowerCase()];
+    });
+    cherche.addEventListener("input", () => {
+      const q = cherche.value.trim().toLowerCase();
+      for (const [li, texte] of lignes) li.hidden = Boolean(q) && !texte.includes(q);
+    });
+  });
 }
 
 function ongletsDuRail(m) {
@@ -709,6 +815,9 @@ const EN_COURS_RAF = ["en_file", "en_cours"];
 // son motif tel que le lanceur l'ecrit ; fait, rien (la date dit le nouveau passage).
 function montrerRafraichissement(cible, nom, date, avis, relire) {
   const e = cible.rafraichir && cible.rafraichir.etat;
+  // RGI_01947, 4B et 5A d'Antoine (PCP049-1122-e) : un recalcul a une date qui part par email ne se montre pas sur la
+  // ligne, pour personne ; son classeur, ou son echec, arrive par email a celui qui l'a demande
+  if (recalculParEmail(cible)) return;
   const textes = { en_file: "Rafraîchissement demandé…", en_cours: "Rafraîchissement en cours…",
                    refuse: "Non rafraîchi", echec: "Rafraîchissement en échec" };
   if (!textes[e]) return;
@@ -731,7 +840,7 @@ function boutonRafraichir(cible, nom, chemin, date, avis, relire, titre) {
   b.prepend(ico("rafraichir", 15));
   b.title = titre;
   b.setAttribute("aria-label", "Rafraîchir " + nom);
-  const occupe = () => EN_COURS_RAF.includes(cible.rafraichir && cible.rafraichir.etat);
+  const occupe = () => EN_COURS_RAF.includes(cible.rafraichir && cible.rafraichir.etat) && !recalculParEmail(cible);
   if (occupe()) b.setAttribute("aria-disabled", "true");
   b.addEventListener("click", async (e) => {
     e.stopPropagation();
@@ -747,7 +856,9 @@ function boutonRafraichir(cible, nom, chemin, date, avis, relire, titre) {
     cible.rafraichir = donnees;
     for (const s of date.querySelectorAll(".rf-e")) s.remove();
     montrerRafraichissement(cible, nom, date, avis, relire);
-    avis.textContent = `« ${nom} » sera rafraîchi dans la minute ; la ligne se met à jour seule.`;
+    // la demande n'est pas reposee tant qu'un recalcul a une date tourne (l'API rend son etat)
+    avis.textContent = recalculParEmail(cible) ? `« ${nom} » est en cours de calcul à une autre date ; réessayez dans quelques minutes.`
+      : `« ${nom} » sera rafraîchi dans la minute ; la ligne se met à jour seule.`;
   });
   return b;
 }
@@ -772,20 +883,111 @@ function aujourdhuiParis() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris" }).format(new Date());
 }
 
+// RGI_01947 : l'envoi par email est allume pour ce client (la ligne d'un rapport, ou le rapport d'une automatisation)
+function recalculParEmail(cible) {
+  return !!(cible && (cible.arrete_par_email || (cible.arrete_au_choix && cible.arrete_au_choix.par_email)));
+}
+
 function boutonArrete(cible, nom, chemin, date, avis, relire) {
   const b = bouton("dm-b rf-b");
   b.prepend(ico("calendrier", 15));
-  b.title = "Recalculer à une date";
-  b.setAttribute("aria-label", "Recalculer « " + nom + " » à une date");
+  const email = recalculParEmail(cible);
+  // 1A d'Antoine (PCP049-1122-e) : l'icone ne change pas, son infobulle dit l'email
+  b.title = email ? "Recevoir ce rapport à une autre date, par email" : "Recalculer à une date";
+  b.setAttribute("aria-label", (email ? "Recevoir « " + nom + " » à une autre date" : "Recalculer « " + nom + " » à une date"));
   b.addEventListener("click", (e) => {
     e.stopPropagation();
     if (EN_COURS_RAF.includes(cible.rafraichir && cible.rafraichir.etat)) {
-      avis.textContent = `« ${nom} » est déjà en cours de rafraîchissement.`;
+      avis.textContent = email ? `« ${nom} » est déjà en cours de calcul ; réessayez dans quelques minutes.`
+        : `« ${nom} » est déjà en cours de rafraîchissement.`;
       return;
     }
-    ouvrirArrete(cible, nom, chemin, date, avis, relire, b);
+    (email ? ouvrirArreteEmail : ouvrirArrete)(cible, nom, chemin, date, avis, relire, b);
   });
   return b;
+}
+
+// 2A et 3B d'Antoine (PCP049-1122-e) : la fenetre courte (le nom du rapport, la date, le delai, « Recevoir par
+// email ») ; apres le clic, elle confirme d'une coche verte et d'une phrase, et se ferme par « Fermer ».
+const DELAI_RECALCUL = "Délai de traitement : entre 1 et 5 minutes.";
+
+function ouvrirArreteEmail(cible, nom, chemin, date, avis, relire, depuis) {
+  fermerDemande();
+  const voile = el("div", "doc-voile");
+  voile.setAttribute("role", "dialog");
+  voile.setAttribute("aria-modal", "true");
+  voile.setAttribute("aria-labelledby", "ar-titre");
+  const fen = el("form", "doc-fen dm");
+  fen.noValidate = true;
+  const x = bouton("doc-x", "×");
+  x.setAttribute("aria-label", "Fermer");
+  x.addEventListener("click", fermerDemande);
+  const titre = el("h2", null, "Recevoir à une autre date");
+  titre.id = "ar-titre";
+  const sur = el("p", "dm-sur ar-nom", nom);
+  const champ = el("input", "champ");
+  champ.type = "date";
+  champ.id = "ar-date";
+  champ.min = "2020-01-01";
+  champ.max = aujourdhuiParis();
+  champ.required = true;
+  const lab = el("label", "dm-lab", "Date d'arrêté");
+  lab.htmlFor = "ar-date";
+  const delai = el("p", "ar-delai");
+  delai.append(ico("envois", 14), DELAI_RECALCUL);
+  const pied = el("div", "dm-pied");
+  const message = el("p", "message");
+  message.setAttribute("aria-live", "polite");
+  const envoyer = bouton("btn", "Recevoir par email");
+  envoyer.type = "submit";
+  pied.append(message, envoyer);
+  fen.append(x, titre, sur, lab, champ, delai, pied);
+  fen.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const jour = champ.value;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(jour)) {
+      message.className = "message erreur";
+      message.textContent = "Choisissez une date d'arrêté.";
+      champ.focus();
+      return;
+    }
+    if (jour > champ.max || jour < champ.min) {
+      message.className = "message erreur";
+      message.textContent = "Choisissez une date entre le 1er janvier 2020 et aujourd'hui.";
+      champ.focus();
+      return;
+    }
+    envoyer.disabled = true;
+    message.className = "message";
+    message.textContent = "Envoi…";
+    const r = await appeler("POST", chemin, { arrete: jour });
+    if (r.statut === 401) return sessionPerdue();
+    if (r.statut !== 200 || !r.donnees) {
+      envoyer.disabled = false;
+      message.className = "message erreur";
+      message.textContent = (r.donnees && r.donnees.erreur) ? `Demande impossible : ${r.donnees.erreur}.`
+        : "Demande impossible pour l'instant. Réessayez dans quelques minutes.";
+      return;
+    }
+    cible.rafraichir = r.donnees;
+    const fait = el("p", "dm-ok ar-fait");
+    fait.append(ico("succes", 18), `Le classeur au ${dateLongue(jour)} vous arrive par email dans quelques minutes.`);
+    const fin = el("div", "dm-pied");
+    const fermer = bouton("btn btn-s", "Fermer");
+    fermer.type = "button";
+    fermer.addEventListener("click", fermerDemande);
+    fin.append(el("p", "message"), fermer);   // la place du message, pour que « Fermer » reste a droite
+    fen.replaceChildren(x, titre, sur, fait, fin);
+    fermer.focus();
+  });
+  voile.append(fen);
+  voile.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!fen.contains(e.target)) fermerDemande();
+  });
+  document.body.append(voile);
+  fenetreDemande = { voile, depuis };
+  champ.focus();
 }
 
 function ouvrirArrete(cible, nom, chemin, date, avis, relire, depuis) {
