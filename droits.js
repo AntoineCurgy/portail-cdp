@@ -75,7 +75,14 @@ const DROITS = (() => {
       document.body.classList.remove("dr-occupe");
     }
   }
-  const redessiner = () => { for (const f of vues) f(); };
+  function exporter() {   // le modele sous la forme de l'API, pour le garder dans le navigateur
+    const droits = {};
+    for (const [k, v] of Object.entries(M.droits)) droits[k] = { groupes: Array.from(v.groupes), personnes: Array.from(v.personnes) };
+    return { groupes: M.groupes, personnes: M.personnes, droits, rapports: M.rapports,
+             caches_par_l_oeil: Array.from(M.caches), courriels: M.courriels, passages: M.passages };
+  }
+  const garder = () => { if (M && typeof moi !== "undefined" && moi) stocker(moi.adresse + ":/api/admin/droits", exporter()); };
+  const redessiner = () => { garder(); for (const f of vues) f(); };
   async function membre(ini, g, dedans, annulable = true) {
     if (!(await ecrire({ geste: "membre", initiales: ini, groupe: g, dedans }))) return;
     const p = personne(ini), x = groupe(g);
@@ -506,16 +513,32 @@ const DROITS = (() => {
   }
 
   // ------------------------------------------------------------ l'allumage
-  let demande = false;
-  async function demarrer() {
-    if (demande || typeof moi === "undefined" || !moi || !moi.voir_comme || moi.comme) return;
-    demande = true;
-    const r = await appeler("GET", "/api/admin/droits");
-    if (r.statut !== 200 || !r.donnees || !Array.isArray(r.donnees.personnes)) return;   // non branche, ou pas l'administrateur
-    charger(r.donnees);
+  // Comme le reste du portail (commun.js, « le cache ») : le modele garde dans le navigateur s'affiche tout de suite,
+  // puis se revalide en reseau et ne se redessine que s'il a change. Sans lui, le bandeau attendait la reponse a
+  // chaque onglet (Antoine, le 2026-11-23 : « un délai de quelques ms avant que la partie admin s'affiche »).
+  // Efface a la deconnexion avec tout le cache du client (viderCache).
+  let demande = false, allume = false;
+  function allumer(d) {
+    charger(d);
+    if (allume) { for (const f of vues) f(); return; }
+    allume = true;
     poserBandeau();
     poserLignes();
     new MutationObserver(() => { poserBandeau(); poserLignes(); }).observe(document.body, { childList: true, subtree: true });
+  }
+  async function demarrer() {
+    if (demande || typeof moi === "undefined" || !moi || !moi.voir_comme || moi.comme) return;
+    demande = true;
+    const cle = moi.adresse + ":/api/admin/droits", garde = relire(cle);
+    if (garde && Array.isArray(garde.personnes)) allumer(garde);
+    const r = await appeler("GET", "/api/admin/droits");
+    if (r.statut !== 200 || !r.donnees || !Array.isArray(r.donnees.personnes)) {   // non branche, ou pas l'administrateur
+      if (garde && (r.statut === 403 || r.statut === 503)) { oublier(cle); location.reload(); }   // le droit retire ne survit pas au cache
+      return;
+    }
+    stocker(cle, r.donnees);
+    if (occupe || (garde && JSON.stringify(garde) === JSON.stringify(r.donnees))) return;
+    allumer(r.donnees);
   }
   const guet = new MutationObserver(() => { if ($("avatar") && $("avatar").textContent) { guet.disconnect(); demarrer(); } });
   document.addEventListener("DOMContentLoaded", () => {
